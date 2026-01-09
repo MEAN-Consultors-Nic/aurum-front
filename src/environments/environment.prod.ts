@@ -1,4 +1,4 @@
 export const environment = {
-  apiUrl: 'http://aurum.meanconsultors.com/api/v1',
+  apiUrl: 'https://aurum-ledger-2e2226e77278.herokuapp.com/api/v1',
   fxRateUsdToNio: 36,
 };
