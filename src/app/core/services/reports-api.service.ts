@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { DashboardOverview } from '../models/dashboard.model';
-import { PaymentsReportResponse, ReceivableItem } from '../models/report.model';
+import { PaymentsReportResponse, ProjectionItem, ReceivableItem, TrendItem } from '../models/report.model';
 
 @Injectable({ providedIn: 'root' })
 export class ReportsApiService {
@@ -26,5 +26,18 @@ export class ReportsApiService {
       params = params.set('to', to);
     }
     return this.http.get<PaymentsReportResponse>(`${environment.apiUrl}/reports/payments`, { params });
+  }
+
+  trends(months = 6) {
+    const params = new HttpParams().set('months', String(months));
+    return this.http.get<TrendItem[]>(`${environment.apiUrl}/reports/trends`, { params });
+  }
+
+  projections(month?: string) {
+    let params = new HttpParams();
+    if (month) {
+      params = params.set('month', month);
+    }
+    return this.http.get<ProjectionItem>(`${environment.apiUrl}/reports/projections`, { params });
   }
 }

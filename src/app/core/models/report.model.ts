@@ -24,3 +24,23 @@ export type PaymentsReportResponse = {
   totalNio: number;
   items: PaymentsReportItem[];
 };
+
+export type TrendItem = {
+  month: string;
+  totalReceivableUsd: number;
+  totalReceivableNio: number;
+  totalPaidUsd: number;
+  totalPaidNio: number;
+  balanceUsd: number;
+  balanceNio: number;
+};
+
+export type ProjectionItem = {
+  month: string;
+  plannedUsd: number;
+  plannedNio: number;
+  contractUsd: number;
+  contractNio: number;
+  totalUsd: number;
+  totalNio: number;
+};

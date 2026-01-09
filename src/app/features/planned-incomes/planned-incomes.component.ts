@@ -4,12 +4,14 @@ import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } 
 import { AccountsApiService } from '../../core/services/accounts-api.service';
 import { CategoriesApiService } from '../../core/services/categories-api.service';
 import { PlannedIncomesApiService } from '../../core/services/planned-incomes-api.service';
+import { ReportsApiService } from '../../core/services/reports-api.service';
 import {
   PlannedIncomeAlerts,
   PlannedIncomeItem,
   PlannedIncomeOccurrence,
   PlannedIncomeSummary,
 } from '../../core/models/planned-income.model';
+import { ProjectionItem } from '../../core/models/report.model';
 import { AccountItem } from '../../core/models/account.model';
 import { CategoryItem } from '../../core/models/category.model';
 
@@ -57,6 +59,45 @@ import { CategoryItem } from '../../core/models/category.model';
           >
             Refresh
           </button>
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="text-sm font-semibold text-slate-800">Projected income (month)</div>
+          <label class="flex items-center gap-2 text-xs text-slate-600">
+            <input type="checkbox" [(ngModel)]="includeContracts" />
+            Include contract receivables
+          </label>
+        </div>
+        <div class="mt-3 grid gap-4 md:grid-cols-3">
+          <div class="rounded-lg border border-slate-200 p-4">
+            <div class="text-xs uppercase tracking-wide text-slate-500">Planned income</div>
+            <div class="text-lg font-semibold">
+              {{ formatMoney(projection?.plannedUsd ?? 0, 'USD') }}
+            </div>
+            <div class="text-xs text-slate-500">
+              {{ formatMoney(projection?.plannedNio ?? 0, 'NIO') }}
+            </div>
+          </div>
+          <div class="rounded-lg border border-slate-200 p-4">
+            <div class="text-xs uppercase tracking-wide text-slate-500">Contract receivables</div>
+            <div class="text-lg font-semibold">
+              {{ formatMoney(projection?.contractUsd ?? 0, 'USD') }}
+            </div>
+            <div class="text-xs text-slate-500">
+              {{ formatMoney(projection?.contractNio ?? 0, 'NIO') }}
+            </div>
+          </div>
+          <div class="rounded-lg border border-slate-200 p-4">
+            <div class="text-xs uppercase tracking-wide text-slate-500">Projected total</div>
+            <div class="text-lg font-semibold">
+              {{ formatMoney(projectedTotalUsd(), 'USD') }}
+            </div>
+            <div class="text-xs text-slate-500">
+              {{ formatMoney(projectedTotalNio(), 'NIO') }}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -397,6 +438,7 @@ export class PlannedIncomesComponent implements OnInit {
   occurrences: PlannedIncomeOccurrence[] = [];
   summary: PlannedIncomeSummary | null = null;
   alerts: PlannedIncomeAlerts | null = null;
+  projection: ProjectionItem | null = null;
   accounts: AccountItem[] = [];
   categories: CategoryItem[] = [];
   isModalOpen = false;
@@ -407,6 +449,7 @@ export class PlannedIncomesComponent implements OnInit {
   confirmError = '';
   editing: PlannedIncomeItem | null = null;
   confirmingOccurrence: PlannedIncomeOccurrence | null = null;
+  includeContracts = true;
   form: FormGroup;
   confirmForm: FormGroup;
   selectedMonth = new Date().toISOString().slice(0, 7);
@@ -414,6 +457,7 @@ export class PlannedIncomesComponent implements OnInit {
   constructor(
     private readonly fb: FormBuilder,
     private readonly plannedIncomesApi: PlannedIncomesApiService,
+    private readonly reportsApi: ReportsApiService,
     private readonly accountsApi: AccountsApiService,
     private readonly categoriesApi: CategoriesApiService,
   ) {
@@ -463,6 +507,9 @@ export class PlannedIncomesComponent implements OnInit {
     });
     this.plannedIncomesApi.alerts(this.selectedMonth).subscribe({
       next: (data) => (this.alerts = data),
+    });
+    this.reportsApi.projections(this.selectedMonth).subscribe({
+      next: (data) => (this.projection = data),
     });
   }
 
@@ -669,5 +716,19 @@ export class PlannedIncomesComponent implements OnInit {
 
   formatMoney(amount: number, currency: 'USD' | 'NIO') {
     return `${currency} ${amount.toFixed(2)}`;
+  }
+
+  projectedTotalUsd() {
+    if (!this.projection) {
+      return 0;
+    }
+    return this.includeContracts ? this.projection.totalUsd : this.projection.plannedUsd;
+  }
+
+  projectedTotalNio() {
+    if (!this.projection) {
+      return 0;
+    }
+    return this.includeContracts ? this.projection.totalNio : this.projection.plannedNio;
   }
 }

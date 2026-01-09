@@ -15,6 +15,7 @@ import {
 } from '../../core/models/finance.model';
 import { PlannedIncomeAlerts, PlannedIncomeSummary } from '../../core/models/planned-income.model';
 import { BudgetAlertItem } from '../../core/models/recurring-expense.model';
+import { TrendItem } from '../../core/models/report.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -174,6 +175,79 @@ import { BudgetAlertItem } from '../../core/models/recurring-expense.model';
           </div>
         </div>
 
+        <div class="space-y-3">
+          <div class="text-sm font-semibold text-slate-800">Trends (last 6 months)</div>
+          <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div class="text-xs uppercase tracking-wide text-slate-500">Total receivable (USD)</div>
+              <div class="text-lg font-semibold text-slate-900">
+                {{ formatMoney(lastTrendReceivableUsd(), 'USD') }}
+              </div>
+              <svg viewBox="0 0 160 56" class="mt-3 h-14 w-full">
+                <polyline
+                  [attr.points]="buildSparkline(receivableUsdSeries())"
+                  fill="none"
+                  stroke="#0f172a"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+
+            <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div class="text-xs uppercase tracking-wide text-slate-500">Paid this month (USD)</div>
+              <div class="text-lg font-semibold text-slate-900">
+                {{ formatMoney(lastTrendPaidUsd(), 'USD') }}
+              </div>
+              <svg viewBox="0 0 160 56" class="mt-3 h-14 w-full">
+                <polyline
+                  [attr.points]="buildSparkline(paidUsdSeries())"
+                  fill="none"
+                  stroke="#0ea5e9"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+
+            <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div class="text-xs uppercase tracking-wide text-slate-500">Balance USD</div>
+              <div class="text-lg font-semibold text-slate-900">
+                {{ formatMoney(lastTrendBalanceUsd(), 'USD') }}
+              </div>
+              <svg viewBox="0 0 160 56" class="mt-3 h-14 w-full">
+                <polyline
+                  [attr.points]="buildSparkline(balanceUsdSeries())"
+                  fill="none"
+                  stroke="#22c55e"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+
+            <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div class="text-xs uppercase tracking-wide text-slate-500">Balance NIO</div>
+              <div class="text-lg font-semibold text-slate-900">
+                {{ formatMoney(lastTrendBalanceNio(), 'NIO') }}
+              </div>
+              <svg viewBox="0 0 160 56" class="mt-3 h-14 w-full">
+                <polyline
+                  [attr.points]="buildSparkline(balanceNioSeries())"
+                  fill="none"
+                  stroke="#f97316"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+
         <div class="grid gap-4 lg:grid-cols-3">
           <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <div class="text-sm font-semibold text-slate-800">Top expenses this month</div>
@@ -248,6 +322,7 @@ export class DashboardComponent implements OnInit {
   plannedSummary: PlannedIncomeSummary | null = null;
   plannedAlerts: PlannedIncomeAlerts | null = null;
   budgetAlerts: BudgetAlertItem[] = [];
+  trends: TrendItem[] = [];
   topExpenses: FinanceByCategoryItem[] = [];
   topClients: FinanceByClientItem[] = [];
   topContracts: FinanceByContractItem[] = [];
@@ -270,6 +345,7 @@ export class DashboardComponent implements OnInit {
     this.loadFinanceSnapshot();
     this.loadPlannedIncome();
     this.loadBudgetAlerts();
+    this.loadTrends();
   }
 
   loadOverview() {
@@ -368,6 +444,78 @@ export class DashboardComponent implements OnInit {
         this.budgetAlerts = data.budget?.items ?? [];
       },
     });
+  }
+
+  loadTrends() {
+    this.reportsApi.trends(6).subscribe({
+      next: (items) => {
+        this.trends = items;
+      },
+    });
+  }
+
+  buildSparkline(values: number[]) {
+    const width = 160;
+    const height = 56;
+    const padding = 6;
+    if (values.length === 0) {
+      return '';
+    }
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const range = max - min || 1;
+    const step = values.length > 1 ? (width - padding * 2) / (values.length - 1) : 0;
+    return values
+      .map((value, index) => {
+        const x = padding + index * step;
+        const y = height - padding - ((value - min) / range) * (height - padding * 2);
+        return `${x},${y}`;
+      })
+      .join(' ');
+  }
+
+  receivableUsdSeries() {
+    return this.trends.map((item) => item.totalReceivableUsd ?? 0);
+  }
+
+  paidUsdSeries() {
+    return this.trends.map((item) => item.totalPaidUsd ?? 0);
+  }
+
+  balanceUsdSeries() {
+    return this.trends.map((item) => item.balanceUsd ?? 0);
+  }
+
+  balanceNioSeries() {
+    return this.trends.map((item) => item.balanceNio ?? 0);
+  }
+
+  lastTrendReceivableUsd() {
+    if (this.trends.length === 0) {
+      return 0;
+    }
+    return this.trends[this.trends.length - 1].totalReceivableUsd ?? 0;
+  }
+
+  lastTrendPaidUsd() {
+    if (this.trends.length === 0) {
+      return 0;
+    }
+    return this.trends[this.trends.length - 1].totalPaidUsd ?? 0;
+  }
+
+  lastTrendBalanceUsd() {
+    if (this.trends.length === 0) {
+      return 0;
+    }
+    return this.trends[this.trends.length - 1].balanceUsd ?? 0;
+  }
+
+  lastTrendBalanceNio() {
+    if (this.trends.length === 0) {
+      return 0;
+    }
+    return this.trends[this.trends.length - 1].balanceNio ?? 0;
   }
 
   getClientName(item: ContractItem) {
