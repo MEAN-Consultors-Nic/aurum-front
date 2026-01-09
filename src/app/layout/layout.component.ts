@@ -42,6 +42,7 @@ import { NotificationsApiService } from '../core/services/notifications-api.serv
             <a routerLink="/budgets" routerLinkActive="bg-slate-800" class="block rounded px-3 py-2">Budgets</a>
             <a routerLink="/finance" routerLinkActive="bg-slate-800" class="block rounded px-3 py-2">Summary</a>
             <a routerLink="/planned-income" routerLinkActive="bg-slate-800" class="block rounded px-3 py-2">Planned income</a>
+            <a routerLink="/recurring-expenses" routerLinkActive="bg-slate-800" class="block rounded px-3 py-2">Recurring expenses</a>
             <a routerLink="/settings" routerLinkActive="bg-slate-800" class="block rounded px-3 py-2">Settings</a>
           </nav>
         </aside>
@@ -100,7 +101,10 @@ export class LayoutComponent implements OnInit {
   ngOnInit() {
     this.notificationsApi.getNotifications().subscribe({
       next: (data) => {
-        this.alertCount = data.plannedIncome?.count ?? 0;
+        const plannedIncome = data.plannedIncome?.count ?? 0;
+        const recurringExpense = data.recurringExpense?.count ?? 0;
+        const budget = data.budget?.count ?? 0;
+        this.alertCount = plannedIncome + recurringExpense + budget;
       },
       error: () => {
         this.alertCount = 0;

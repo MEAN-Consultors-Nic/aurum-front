@@ -4,6 +4,7 @@ import { FinanceApiService } from '../../core/services/finance-api.service';
 import { ReportsApiService } from '../../core/services/reports-api.service';
 import { ContractsApiService } from '../../core/services/contracts-api.service';
 import { PlannedIncomesApiService } from '../../core/services/planned-incomes-api.service';
+import { NotificationsApiService } from '../../core/services/notifications-api.service';
 import { DashboardOverview } from '../../core/models/dashboard.model';
 import { ContractItem } from '../../core/models/contract.model';
 import {
@@ -13,6 +14,7 @@ import {
   FinanceOverview,
 } from '../../core/models/finance.model';
 import { PlannedIncomeAlerts, PlannedIncomeSummary } from '../../core/models/planned-income.model';
+import { BudgetAlertItem } from '../../core/models/recurring-expense.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -148,6 +150,29 @@ import { PlannedIncomeAlerts, PlannedIncomeSummary } from '../../core/models/pla
             </div>
           </div>
         </div>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="text-xs uppercase tracking-wide text-slate-500">Budget alerts</div>
+            <div class="text-2xl font-semibold text-slate-900">{{ budgetAlerts.length }}</div>
+            <div class="text-xs text-slate-500">
+              Categories near limit
+            </div>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="text-xs uppercase tracking-wide text-slate-500">Top budget alert</div>
+            <div class="text-lg font-semibold text-slate-900" *ngIf="budgetAlerts.length === 0">
+              No alerts
+            </div>
+            <div *ngIf="budgetAlerts.length > 0">
+              <div class="text-lg font-semibold text-slate-900">
+                {{ budgetAlerts[0].categoryName }}
+              </div>
+              <div class="text-xs text-slate-500">
+                {{ (budgetAlerts[0].usage * 100).toFixed(0) }}% used
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div class="grid gap-4 lg:grid-cols-3">
           <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -222,6 +247,7 @@ export class DashboardComponent implements OnInit {
   financeOverview: FinanceOverview | null = null;
   plannedSummary: PlannedIncomeSummary | null = null;
   plannedAlerts: PlannedIncomeAlerts | null = null;
+  budgetAlerts: BudgetAlertItem[] = [];
   topExpenses: FinanceByCategoryItem[] = [];
   topClients: FinanceByClientItem[] = [];
   topContracts: FinanceByContractItem[] = [];
@@ -235,6 +261,7 @@ export class DashboardComponent implements OnInit {
     private readonly contractsApi: ContractsApiService,
     private readonly financeApi: FinanceApiService,
     private readonly plannedIncomesApi: PlannedIncomesApiService,
+    private readonly notificationsApi: NotificationsApiService,
   ) {}
 
   ngOnInit() {
@@ -242,6 +269,7 @@ export class DashboardComponent implements OnInit {
     this.loadDueLists();
     this.loadFinanceSnapshot();
     this.loadPlannedIncome();
+    this.loadBudgetAlerts();
   }
 
   loadOverview() {
@@ -330,6 +358,15 @@ export class DashboardComponent implements OnInit {
     });
     this.plannedIncomesApi.alerts(month).subscribe({
       next: (data) => (this.plannedAlerts = data),
+    });
+  }
+
+  loadBudgetAlerts() {
+    const month = new Date().toISOString().slice(0, 7);
+    this.notificationsApi.getNotifications(month).subscribe({
+      next: (data) => {
+        this.budgetAlerts = data.budget?.items ?? [];
+      },
     });
   }
 

@@ -20,6 +20,7 @@ import { FinanceComponent } from './features/finance/finance.component';
 import { SettingsComponent } from './features/settings/settings.component';
 import { PlannedIncomesComponent } from './features/planned-incomes/planned-incomes.component';
 import { NotificationsComponent } from './features/notifications/notifications.component';
+import { RecurringExpensesComponent } from './features/recurring-expenses/recurring-expenses.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -44,6 +45,7 @@ export const routes: Routes = [
       { path: 'budgets', component: BudgetsComponent },
       { path: 'finance', component: FinanceComponent },
       { path: 'planned-income', component: PlannedIncomesComponent },
+      { path: 'recurring-expenses', component: RecurringExpensesComponent },
       { path: 'notifications', component: NotificationsComponent },
       { path: 'settings', component: SettingsComponent },
     ],

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { NotificationsApiService } from '../../core/services/notifications-api.service';
 import { PlannedIncomeOccurrence } from '../../core/models/planned-income.model';
+import { BudgetAlertItem, RecurringExpenseOccurrence } from '../../core/models/recurring-expense.model';
 
 @Component({
   selector: 'app-notifications',
@@ -63,11 +64,68 @@ import { PlannedIncomeOccurrence } from '../../core/models/planned-income.model'
           </tbody>
         </table>
       </div>
+
+      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="flex items-center justify-between">
+          <div class="text-sm font-semibold text-slate-800">Recurring expense alerts</div>
+          <a routerLink="/recurring-expenses" class="text-xs text-slate-600">Open planner</a>
+        </div>
+        <div *ngIf="isLoading" class="mt-3 text-sm text-slate-500">Loading...</div>
+        <table *ngIf="!isLoading" class="mt-3 w-full text-sm">
+          <thead class="text-left text-xs uppercase tracking-wide text-slate-400">
+            <tr>
+              <th class="py-2">Date</th>
+              <th class="py-2">Name</th>
+              <th class="py-2">Account</th>
+              <th class="py-2">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of recurringExpenseAlerts" class="border-t border-slate-100">
+              <td class="py-3">{{ formatDate(item.date) }}</td>
+              <td class="py-3">{{ resolveRecurringName(item) }}</td>
+              <td class="py-3">{{ resolveAccountName(item) }}</td>
+              <td class="py-3">{{ formatMoney(item.amount, item.currency) }}</td>
+            </tr>
+            <tr *ngIf="recurringExpenseAlerts.length === 0 && !isLoading">
+              <td colspan="4" class="py-4 text-center text-sm text-slate-500">No alerts</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="text-sm font-semibold text-slate-800">Budget limit alerts</div>
+        <div *ngIf="isLoading" class="mt-3 text-sm text-slate-500">Loading...</div>
+        <table *ngIf="!isLoading" class="mt-3 w-full text-sm">
+          <thead class="text-left text-xs uppercase tracking-wide text-slate-400">
+            <tr>
+              <th class="py-2">Category</th>
+              <th class="py-2">Spent</th>
+              <th class="py-2">Budget</th>
+              <th class="py-2">Usage</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of budgetAlerts" class="border-t border-slate-100">
+              <td class="py-3">{{ item.categoryName }}</td>
+              <td class="py-3">{{ formatMoney(item.spent, item.currency) }}</td>
+              <td class="py-3">{{ formatMoney(item.amount, item.currency) }}</td>
+              <td class="py-3">{{ (item.usage * 100).toFixed(0) }}%</td>
+            </tr>
+            <tr *ngIf="budgetAlerts.length === 0 && !isLoading">
+              <td colspan="4" class="py-4 text-center text-sm text-slate-500">No alerts</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   `,
 })
 export class NotificationsComponent implements OnInit {
   plannedIncomeAlerts: PlannedIncomeOccurrence[] = [];
+  recurringExpenseAlerts: RecurringExpenseOccurrence[] = [];
+  budgetAlerts: BudgetAlertItem[] = [];
   selectedMonth = new Date().toISOString().slice(0, 7);
   isLoading = false;
 
@@ -82,6 +140,8 @@ export class NotificationsComponent implements OnInit {
     this.notificationsApi.getNotifications(this.selectedMonth).subscribe({
       next: (data) => {
         this.plannedIncomeAlerts = data.plannedIncome?.items ?? [];
+        this.recurringExpenseAlerts = data.recurringExpense?.items ?? [];
+        this.budgetAlerts = data.budget?.items ?? [];
         this.isLoading = false;
       },
       error: () => {
@@ -90,7 +150,7 @@ export class NotificationsComponent implements OnInit {
     });
   }
 
-  resolveAccountName(item: PlannedIncomeOccurrence) {
+  resolveAccountName(item: PlannedIncomeOccurrence | RecurringExpenseOccurrence) {
     const account = item.accountId as { _id: string; name: string } | string;
     return typeof account === 'string' ? account : account?.name || '';
   }
@@ -98,6 +158,11 @@ export class NotificationsComponent implements OnInit {
   resolvePlannedName(item: PlannedIncomeOccurrence) {
     const planned = item.plannedIncomeId as { _id: string; name: string } | string;
     return typeof planned === 'string' ? planned : planned?.name || '';
+  }
+
+  resolveRecurringName(item: RecurringExpenseOccurrence) {
+    const recurring = item.recurringExpenseId as { _id: string; name: string } | string;
+    return typeof recurring === 'string' ? recurring : recurring?.name || '';
   }
 
   formatDate(value?: string) {
