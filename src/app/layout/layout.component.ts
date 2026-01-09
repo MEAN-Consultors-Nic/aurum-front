@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../core/services/auth.service';
+import { NotificationsApiService } from '../core/services/notifications-api.service';
 
 @Component({
   selector: 'app-layout',
@@ -25,6 +26,7 @@ import { AuthService } from '../core/services/auth.service';
           </div>
           <nav class="mt-8 space-y-2 text-sm">
             <a routerLink="/dashboard" routerLinkActive="bg-slate-800" class="block rounded px-3 py-2">Dashboard</a>
+            <a routerLink="/notifications" routerLinkActive="bg-slate-800" class="block rounded px-3 py-2">Notifications</a>
             <a routerLink="/clients" routerLinkActive="bg-slate-800" class="block rounded px-3 py-2">Clients</a>
             <a routerLink="/services" routerLinkActive="bg-slate-800" class="block rounded px-3 py-2">Services</a>
             <a routerLink="/estimates" routerLinkActive="bg-slate-800" class="block rounded px-3 py-2">Estimates</a>
@@ -39,6 +41,7 @@ import { AuthService } from '../core/services/auth.service';
             <a routerLink="/transactions" routerLinkActive="bg-slate-800" class="block rounded px-3 py-2">Transactions</a>
             <a routerLink="/budgets" routerLinkActive="bg-slate-800" class="block rounded px-3 py-2">Budgets</a>
             <a routerLink="/finance" routerLinkActive="bg-slate-800" class="block rounded px-3 py-2">Summary</a>
+            <a routerLink="/planned-income" routerLinkActive="bg-slate-800" class="block rounded px-3 py-2">Planned income</a>
             <a routerLink="/settings" routerLinkActive="bg-slate-800" class="block rounded px-3 py-2">Settings</a>
           </nav>
         </aside>
@@ -55,6 +58,17 @@ import { AuthService } from '../core/services/auth.service';
               <div class="text-lg font-semibold">Dashboard</div>
             </div>
             <div class="flex items-center gap-3">
+              <a
+                routerLink="/notifications"
+                class="flex items-center gap-2 rounded border border-slate-200 px-3 py-1.5 text-xs uppercase tracking-wide text-slate-700"
+              >
+                Alerts
+                <span
+                  class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700"
+                >
+                  {{ alertCount }}
+                </span>
+              </a>
               <div class="text-sm text-slate-600">{{ userName }}</div>
               <button
                 type="button"
@@ -73,10 +87,26 @@ import { AuthService } from '../core/services/auth.service';
     </div>
   `,
 })
-export class LayoutComponent {
+export class LayoutComponent implements OnInit {
   isMobileNavOpen = false;
+  alertCount = 0;
 
-  constructor(private readonly authService: AuthService, private readonly router: Router) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly router: Router,
+    private readonly notificationsApi: NotificationsApiService,
+  ) {}
+
+  ngOnInit() {
+    this.notificationsApi.getNotifications().subscribe({
+      next: (data) => {
+        this.alertCount = data.plannedIncome?.count ?? 0;
+      },
+      error: () => {
+        this.alertCount = 0;
+      },
+    });
+  }
 
   get userName() {
     return this.authService.user()?.name ?? 'User';

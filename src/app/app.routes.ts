@@ -18,6 +18,8 @@ import { TransactionsComponent } from './features/transactions/transactions.comp
 import { BudgetsComponent } from './features/budgets/budgets.component';
 import { FinanceComponent } from './features/finance/finance.component';
 import { SettingsComponent } from './features/settings/settings.component';
+import { PlannedIncomesComponent } from './features/planned-incomes/planned-incomes.component';
+import { NotificationsComponent } from './features/notifications/notifications.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -41,6 +43,8 @@ export const routes: Routes = [
       { path: 'transactions', component: TransactionsComponent },
       { path: 'budgets', component: BudgetsComponent },
       { path: 'finance', component: FinanceComponent },
+      { path: 'planned-income', component: PlannedIncomesComponent },
+      { path: 'notifications', component: NotificationsComponent },
       { path: 'settings', component: SettingsComponent },
     ],
   },

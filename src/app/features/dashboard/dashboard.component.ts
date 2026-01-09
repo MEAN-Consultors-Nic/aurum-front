@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FinanceApiService } from '../../core/services/finance-api.service';
 import { ReportsApiService } from '../../core/services/reports-api.service';
 import { ContractsApiService } from '../../core/services/contracts-api.service';
+import { PlannedIncomesApiService } from '../../core/services/planned-incomes-api.service';
 import { DashboardOverview } from '../../core/models/dashboard.model';
 import { ContractItem } from '../../core/models/contract.model';
 import {
@@ -11,6 +12,7 @@ import {
   FinanceByContractItem,
   FinanceOverview,
 } from '../../core/models/finance.model';
+import { PlannedIncomeAlerts, PlannedIncomeSummary } from '../../core/models/planned-income.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -127,6 +129,26 @@ import {
           </div>
         </div>
 
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="text-xs uppercase tracking-wide text-slate-500">Planned income (month)</div>
+            <div class="text-lg font-semibold text-slate-900">
+              {{ formatMoney(plannedSummary?.totals?.plannedUsd ?? 0, 'USD') }}
+              / {{ formatMoney(plannedSummary?.totals?.plannedNio ?? 0, 'NIO') }}
+            </div>
+            <div class="text-xs text-slate-500">
+              Confirmed: {{ formatMoney(plannedSummary?.totals?.confirmedUsd ?? 0, 'USD') }}
+              / {{ formatMoney(plannedSummary?.totals?.confirmedNio ?? 0, 'NIO') }}
+            </div>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="text-xs uppercase tracking-wide text-slate-500">Overdue planned income</div>
+            <div class="text-2xl font-semibold text-slate-900">
+              {{ plannedAlerts?.count || 0 }}
+            </div>
+          </div>
+        </div>
+
         <div class="grid gap-4 lg:grid-cols-3">
           <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <div class="text-sm font-semibold text-slate-800">Top expenses this month</div>
@@ -198,6 +220,8 @@ import {
 export class DashboardComponent implements OnInit {
   overview: DashboardOverview | null = null;
   financeOverview: FinanceOverview | null = null;
+  plannedSummary: PlannedIncomeSummary | null = null;
+  plannedAlerts: PlannedIncomeAlerts | null = null;
   topExpenses: FinanceByCategoryItem[] = [];
   topClients: FinanceByClientItem[] = [];
   topContracts: FinanceByContractItem[] = [];
@@ -210,12 +234,14 @@ export class DashboardComponent implements OnInit {
     private readonly reportsApi: ReportsApiService,
     private readonly contractsApi: ContractsApiService,
     private readonly financeApi: FinanceApiService,
+    private readonly plannedIncomesApi: PlannedIncomesApiService,
   ) {}
 
   ngOnInit() {
     this.loadOverview();
     this.loadDueLists();
     this.loadFinanceSnapshot();
+    this.loadPlannedIncome();
   }
 
   loadOverview() {
@@ -294,6 +320,16 @@ export class DashboardComponent implements OnInit {
           .sort((a, b) => b.total - a.total)
           .slice(0, 5);
       },
+    });
+  }
+
+  loadPlannedIncome() {
+    const month = new Date().toISOString().slice(0, 7);
+    this.plannedIncomesApi.summary(month).subscribe({
+      next: (data) => (this.plannedSummary = data),
+    });
+    this.plannedIncomesApi.alerts(month).subscribe({
+      next: (data) => (this.plannedAlerts = data),
     });
   }
 
