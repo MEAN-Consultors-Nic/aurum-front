@@ -49,6 +49,43 @@ import { CategoryItem } from '../../core/models/category.model';
         </div>
       </div>
 
+      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div class="text-xs uppercase tracking-wide text-slate-500">Planned total (USD)</div>
+          <div class="text-lg font-semibold text-slate-900">
+            {{ formatMoney(recurringPlannedTotal('USD'), 'USD') }}
+          </div>
+          <div class="text-xs text-slate-500">
+            Remaining: {{ formatMoney(recurringRemainingTotal('USD'), 'USD') }}
+          </div>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div class="text-xs uppercase tracking-wide text-slate-500">Planned total (NIO)</div>
+          <div class="text-lg font-semibold text-slate-900">
+            {{ formatMoney(recurringPlannedTotal('NIO'), 'NIO') }}
+          </div>
+          <div class="text-xs text-slate-500">
+            Remaining: {{ formatMoney(recurringRemainingTotal('NIO'), 'NIO') }}
+          </div>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div class="text-xs uppercase tracking-wide text-slate-500">Confirmed payments</div>
+          <div class="text-lg font-semibold text-slate-900">
+            {{ formatMoney(recurringConfirmedTotal('USD'), 'USD') }}
+          </div>
+          <div class="text-xs text-slate-500">
+            {{ formatMoney(recurringConfirmedTotal('NIO'), 'NIO') }}
+          </div>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div class="text-xs uppercase tracking-wide text-slate-500">Pending count</div>
+          <div class="text-2xl font-semibold text-slate-900">
+            {{ recurringPendingCount() }}
+          </div>
+          <div class="text-xs text-slate-500">Occurrences to confirm</div>
+        </div>
+      </div>
+
       <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <div class="text-sm font-semibold text-slate-800">Occurrences</div>
         <table class="mt-3 w-full text-sm">
@@ -479,5 +516,27 @@ export class RecurringExpensesComponent implements OnInit {
 
   formatMoney(amount: number, currency: 'USD' | 'NIO') {
     return `${currency} ${amount.toFixed(2)}`;
+  }
+
+  recurringPlannedTotal(currency: 'USD' | 'NIO') {
+    return this.occurrences
+      .filter((item) => item.currency === currency && item.status !== 'omitted')
+      .reduce((sum, item) => sum + (item.amount ?? 0), 0);
+  }
+
+  recurringConfirmedTotal(currency: 'USD' | 'NIO') {
+    return this.occurrences
+      .filter((item) => item.currency === currency && item.status === 'confirmed')
+      .reduce((sum, item) => sum + (item.amount ?? 0), 0);
+  }
+
+  recurringRemainingTotal(currency: 'USD' | 'NIO') {
+    return this.occurrences
+      .filter((item) => item.currency === currency && item.status === 'planned')
+      .reduce((sum, item) => sum + (item.amount ?? 0), 0);
+  }
+
+  recurringPendingCount() {
+    return this.occurrences.filter((item) => item.status === 'planned').length;
   }
 }

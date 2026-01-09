@@ -5,6 +5,7 @@ import { ReportsApiService } from '../../core/services/reports-api.service';
 import { ContractsApiService } from '../../core/services/contracts-api.service';
 import { PlannedIncomesApiService } from '../../core/services/planned-incomes-api.service';
 import { NotificationsApiService } from '../../core/services/notifications-api.service';
+import { RecurringExpensesApiService } from '../../core/services/recurring-expenses-api.service';
 import { DashboardOverview } from '../../core/models/dashboard.model';
 import { ContractItem } from '../../core/models/contract.model';
 import {
@@ -16,6 +17,7 @@ import {
 import { PlannedIncomeAlerts, PlannedIncomeSummary } from '../../core/models/planned-income.model';
 import { BudgetAlertItem } from '../../core/models/recurring-expense.model';
 import { TrendItem } from '../../core/models/report.model';
+import { RecurringExpenseOccurrence } from '../../core/models/recurring-expense.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -148,6 +150,22 @@ import { TrendItem } from '../../core/models/report.model';
             <div class="text-xs uppercase tracking-wide text-slate-500">Overdue planned income</div>
             <div class="text-2xl font-semibold text-slate-900">
               {{ plannedAlerts?.count || 0 }}
+            </div>
+          </div>
+        </div>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="text-xs uppercase tracking-wide text-slate-500">Recurring expenses (month)</div>
+            <div class="text-lg font-semibold text-slate-900">
+              {{ formatMoney(recurringPlannedTotal('USD'), 'USD') }}
+              / {{ formatMoney(recurringPlannedTotal('NIO'), 'NIO') }}
+            </div>
+            <div class="text-xs text-slate-500">Planned recurring charges</div>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="text-xs uppercase tracking-wide text-slate-500">Overdue recurring expenses</div>
+            <div class="text-2xl font-semibold text-slate-900">
+              {{ overdueRecurringCount() }}
             </div>
           </div>
         </div>
@@ -323,6 +341,7 @@ export class DashboardComponent implements OnInit {
   plannedAlerts: PlannedIncomeAlerts | null = null;
   budgetAlerts: BudgetAlertItem[] = [];
   trends: TrendItem[] = [];
+  recurringOccurrences: RecurringExpenseOccurrence[] = [];
   topExpenses: FinanceByCategoryItem[] = [];
   topClients: FinanceByClientItem[] = [];
   topContracts: FinanceByContractItem[] = [];
@@ -337,6 +356,7 @@ export class DashboardComponent implements OnInit {
     private readonly financeApi: FinanceApiService,
     private readonly plannedIncomesApi: PlannedIncomesApiService,
     private readonly notificationsApi: NotificationsApiService,
+    private readonly recurringExpensesApi: RecurringExpensesApiService,
   ) {}
 
   ngOnInit() {
@@ -346,6 +366,7 @@ export class DashboardComponent implements OnInit {
     this.loadPlannedIncome();
     this.loadBudgetAlerts();
     this.loadTrends();
+    this.loadRecurringExpenses();
   }
 
   loadOverview() {
@@ -454,6 +475,15 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  loadRecurringExpenses() {
+    const month = new Date().toISOString().slice(0, 7);
+    this.recurringExpensesApi.occurrences(month).subscribe({
+      next: (items) => {
+        this.recurringOccurrences = items;
+      },
+    });
+  }
+
   buildSparkline(values: number[]) {
     const width = 160;
     const height = 56;
@@ -472,6 +502,19 @@ export class DashboardComponent implements OnInit {
         return `${x},${y}`;
       })
       .join(' ');
+  }
+
+  recurringPlannedTotal(currency: 'USD' | 'NIO') {
+    return this.recurringOccurrences
+      .filter((item) => item.currency === currency && item.status !== 'omitted')
+      .reduce((sum, item) => sum + (item.amount ?? 0), 0);
+  }
+
+  overdueRecurringCount() {
+    const today = new Date();
+    return this.recurringOccurrences.filter(
+      (item) => item.status === 'planned' && new Date(item.date) < today,
+    ).length;
   }
 
   receivableUsdSeries() {
