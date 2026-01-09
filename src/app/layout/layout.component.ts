@@ -43,6 +43,8 @@ import { NotificationsApiService } from '../core/services/notifications-api.serv
             <a routerLink="/finance" routerLinkActive="bg-slate-800" class="block rounded px-3 py-2">Summary</a>
             <a routerLink="/planned-income" routerLinkActive="bg-slate-800" class="block rounded px-3 py-2">Planned income</a>
             <a routerLink="/recurring-expenses" routerLinkActive="bg-slate-800" class="block rounded px-3 py-2">Recurring expenses</a>
+            <a routerLink="/loans" routerLinkActive="bg-slate-800" class="block rounded px-3 py-2">Loans</a>
+            <a routerLink="/subscriptions" routerLinkActive="bg-slate-800" class="block rounded px-3 py-2">Subscriptions</a>
             <a routerLink="/settings" routerLinkActive="bg-slate-800" class="block rounded px-3 py-2">Settings</a>
           </nav>
         </aside>
@@ -104,7 +106,9 @@ export class LayoutComponent implements OnInit {
         const plannedIncome = data.plannedIncome?.count ?? 0;
         const recurringExpense = data.recurringExpense?.count ?? 0;
         const budget = data.budget?.count ?? 0;
-        this.alertCount = plannedIncome + recurringExpense + budget;
+        const loans = data.loans?.count ?? 0;
+        const subscriptions = data.subscriptions?.count ?? 0;
+        this.alertCount = plannedIncome + recurringExpense + budget + loans + subscriptions;
       },
       error: () => {
         this.alertCount = 0;
