@@ -23,7 +23,7 @@ import { AuthService } from '../../core/services/auth.service';
               type="text"
               formControlName="identifier"
               class="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
-              placeholder="xrooth or admin@mean-consultors.com"
+              placeholder="username or user@domain.com"
             />
           </div>
           <div>
