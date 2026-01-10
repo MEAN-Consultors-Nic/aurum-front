@@ -14,14 +14,14 @@ import { CategoryItem } from '../../core/models/category.model';
     <div class="space-y-6">
       <div class="flex items-center justify-between">
         <div>
-          <div class="text-2xl font-semibold">Presupuestos</div>
-          <div class="text-sm text-slate-500">Define limites por categoria</div>
+          <div class="text-2xl font-semibold">Budgets</div>
+          <div class="text-sm text-slate-500">Define limits by category</div>
         </div>
         <button
           class="rounded bg-slate-900 px-3 py-2 text-xs uppercase tracking-wide text-white"
           (click)="openCreate()"
         >
-          Nuevo presupuesto
+          New budget
         </button>
       </div>
 
@@ -30,34 +30,34 @@ import { CategoryItem } from '../../core/models/category.model';
           type="number"
           [(ngModel)]="month"
           class="rounded-lg border border-slate-200 px-3 py-2 text-sm"
-          placeholder="Mes"
+          placeholder="Month"
         />
         <input
           type="number"
           [(ngModel)]="year"
           class="rounded-lg border border-slate-200 px-3 py-2 text-sm"
-          placeholder="Ano"
+          placeholder="Year"
         />
         <button
           class="rounded bg-slate-900 px-3 py-2 text-xs uppercase tracking-wide text-white lg:col-span-2"
           (click)="load()"
         >
-          Filtrar
+          Filter
         </button>
       </div>
 
       <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div *ngIf="isLoading" class="text-sm text-slate-500">Cargando presupuestos...</div>
+        <div *ngIf="isLoading" class="text-sm text-slate-500">Loading budgets...</div>
         <div *ngIf="error" class="text-sm text-red-600">{{ error }}</div>
 
         <table *ngIf="!isLoading" class="mt-2 w-full text-sm">
           <thead class="text-left text-xs uppercase tracking-wide text-slate-400">
             <tr>
-              <th class="py-2">Categoria</th>
-              <th class="py-2">Mes</th>
-              <th class="py-2">Monto</th>
-              <th class="py-2">Moneda</th>
-              <th class="py-2 text-right">Acciones</th>
+              <th class="py-2">Category</th>
+              <th class="py-2">Month</th>
+              <th class="py-2">Amount</th>
+              <th class="py-2">Currency</th>
+              <th class="py-2 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -67,13 +67,13 @@ import { CategoryItem } from '../../core/models/category.model';
               <td class="py-3">{{ formatMoney(item.amount, item.currency) }}</td>
               <td class="py-3">{{ item.currency }}</td>
               <td class="py-3 text-right">
-                <button class="text-xs text-slate-700" (click)="openEdit(item)">Editar</button>
-                <button class="ml-3 text-xs text-slate-400" (click)="remove(item)">Eliminar</button>
+                <button class="text-xs text-slate-700" (click)="openEdit(item)">Edit</button>
+                <button class="ml-3 text-xs text-slate-400" (click)="remove(item)">Delete</button>
               </td>
             </tr>
             <tr *ngIf="budgets.length === 0 && !isLoading">
               <td colspan="5" class="py-6 text-center text-sm text-slate-500">
-                Sin presupuestos registrados
+                No budgets found
               </td>
             </tr>
           </tbody>
@@ -87,18 +87,18 @@ import { CategoryItem } from '../../core/models/category.model';
     >
       <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
         <div class="flex items-center justify-between">
-          <div class="text-lg font-semibold">{{ editing ? 'Editar presupuesto' : 'Nuevo presupuesto' }}</div>
+          <div class="text-lg font-semibold">{{ editing ? 'Edit budget' : 'New budget' }}</div>
           <button class="text-slate-400" (click)="closeModal()">X</button>
         </div>
 
         <form class="mt-4 space-y-4" [formGroup]="form" (ngSubmit)="save()">
           <div>
-            <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Categoria</label>
+            <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Category</label>
             <select
               formControlName="categoryId"
               class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
             >
-              <option value="">Seleccionar categoria</option>
+              <option value="">Select category</option>
               <option *ngFor="let category of categories" [value]="category._id">
                 {{ category.name }}
               </option>
@@ -107,7 +107,7 @@ import { CategoryItem } from '../../core/models/category.model';
 
           <div class="grid gap-4 md:grid-cols-3">
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Mes</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Month</label>
               <input
                 formControlName="month"
                 type="number"
@@ -115,7 +115,7 @@ import { CategoryItem } from '../../core/models/category.model';
               />
             </div>
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Ano</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Year</label>
               <input
                 formControlName="year"
                 type="number"
@@ -123,7 +123,7 @@ import { CategoryItem } from '../../core/models/category.model';
               />
             </div>
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Moneda</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Currency</label>
               <select
                 formControlName="currency"
                 class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
@@ -135,7 +135,7 @@ import { CategoryItem } from '../../core/models/category.model';
           </div>
 
           <div>
-            <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Monto</label>
+            <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Amount</label>
             <input
               formControlName="amount"
               type="number"
@@ -147,14 +147,14 @@ import { CategoryItem } from '../../core/models/category.model';
 
           <div class="flex justify-end gap-3">
             <button type="button" class="text-sm text-slate-500" (click)="closeModal()">
-              Cancelar
+              Cancel
             </button>
             <button
               type="submit"
               class="rounded bg-slate-900 px-4 py-2 text-xs uppercase tracking-wide text-white"
               [disabled]="form.invalid || isSaving"
             >
-              {{ isSaving ? 'Guardando...' : 'Guardar' }}
+              {{ isSaving ? 'Saving...' : 'Save' }}
             </button>
           </div>
         </form>
@@ -208,7 +208,7 @@ export class BudgetsComponent implements OnInit {
         this.isLoading = false;
       },
       error: () => {
-        this.error = 'No se pudieron cargar los presupuestos';
+        this.error = 'Unable to load budgets';
         this.isLoading = false;
       },
     });
@@ -264,7 +264,7 @@ export class BudgetsComponent implements OnInit {
         },
         error: () => {
           this.isSaving = false;
-          this.error = 'No se pudo guardar el presupuesto';
+          this.error = 'Unable to save budget';
         },
       });
       return;
@@ -278,7 +278,7 @@ export class BudgetsComponent implements OnInit {
       },
       error: () => {
         this.isSaving = false;
-        this.error = 'No se pudo crear el presupuesto';
+        this.error = 'Unable to create budget';
       },
     });
   }
@@ -287,7 +287,7 @@ export class BudgetsComponent implements OnInit {
     this.budgetsApi.remove(item._id).subscribe({
       next: () => this.load(),
       error: () => {
-        this.error = 'No se pudo eliminar el presupuesto';
+        this.error = 'Unable to delete budget';
       },
     });
   }

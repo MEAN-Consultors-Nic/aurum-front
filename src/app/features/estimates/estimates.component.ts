@@ -16,14 +16,14 @@ import { ServiceItem } from '../../core/models/service.model';
     <div class="space-y-6">
       <div class="flex items-center justify-between">
         <div>
-          <div class="text-2xl font-semibold">Cotizaciones</div>
-          <div class="text-sm text-slate-500">Gestion de cotizaciones y conversion a contratos</div>
+          <div class="text-2xl font-semibold">Estimates</div>
+          <div class="text-sm text-slate-500">Estimate management and contract conversion</div>
         </div>
         <button
           class="rounded bg-slate-900 px-3 py-2 text-xs uppercase tracking-wide text-white"
           (click)="openCreate()"
         >
-          Nueva cotizacion
+          New estimate
         </button>
       </div>
 
@@ -33,25 +33,25 @@ import { ServiceItem } from '../../core/models/service.model';
           [(ngModel)]="search"
           (keyup.enter)="load()"
           class="rounded-lg border border-slate-200 px-3 py-2 text-sm"
-          placeholder="Buscar por titulo"
+          placeholder="Search by title"
         />
         <select
           [(ngModel)]="statusFilter"
           class="rounded-lg border border-slate-200 px-3 py-2 text-sm"
         >
-          <option value="">Todos los estados</option>
-          <option value="draft">Borrador</option>
-          <option value="sent">Enviada</option>
-          <option value="accepted">Aceptada</option>
-          <option value="rejected">Rechazada</option>
-          <option value="expired">Vencida</option>
-          <option value="converted">Convertida</option>
+          <option value="">All statuses</option>
+          <option value="draft">Draft</option>
+          <option value="sent">Sent</option>
+          <option value="accepted">Accepted</option>
+          <option value="rejected">Rejected</option>
+          <option value="expired">Expired</option>
+          <option value="converted">Converted</option>
         </select>
         <select
           [(ngModel)]="clientFilter"
           class="rounded-lg border border-slate-200 px-3 py-2 text-sm"
         >
-          <option value="">Todos los clientes</option>
+          <option value="">All clients</option>
           <option *ngFor="let client of clients" [value]="client._id">
             {{ client.name }}
           </option>
@@ -60,24 +60,24 @@ import { ServiceItem } from '../../core/models/service.model';
           class="rounded bg-slate-900 px-3 py-2 text-xs uppercase tracking-wide text-white"
           (click)="load()"
         >
-          Filtrar
+          Filter
         </button>
       </div>
 
       <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div *ngIf="isLoading" class="text-sm text-slate-500">Cargando cotizaciones...</div>
+        <div *ngIf="isLoading" class="text-sm text-slate-500">Loading estimates...</div>
         <div *ngIf="error" class="text-sm text-red-600">{{ error }}</div>
 
         <table *ngIf="!isLoading" class="mt-2 w-full text-sm">
           <thead class="text-left text-xs uppercase tracking-wide text-slate-400">
             <tr>
-              <th class="py-2">Cliente</th>
-              <th class="py-2">Servicio</th>
-              <th class="py-2">Periodo</th>
-              <th class="py-2">Monto</th>
-              <th class="py-2">Estado</th>
-              <th class="py-2">Creada</th>
-              <th class="py-2 text-right">Acciones</th>
+              <th class="py-2">Client</th>
+              <th class="py-2">Service</th>
+              <th class="py-2">Period</th>
+              <th class="py-2">Amount</th>
+              <th class="py-2">Status</th>
+              <th class="py-2">Created</th>
+              <th class="py-2 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -101,21 +101,21 @@ import { ServiceItem } from '../../core/models/service.model';
                   (click)="openEdit(item)"
                   [disabled]="item.status === 'converted'"
                 >
-                  Editar
+                  Edit
                 </button>
                 <button
                   class="ml-3 text-xs text-emerald-600"
                   (click)="openConvert(item)"
                   [disabled]="item.status === 'converted' || item.status === 'rejected' || item.status === 'expired'"
                 >
-                  Convertir
+                  Convert
                 </button>
-                <button class="ml-3 text-xs text-slate-400" (click)="remove(item)">Eliminar</button>
+                <button class="ml-3 text-xs text-slate-400" (click)="remove(item)">Delete</button>
               </td>
             </tr>
             <tr *ngIf="estimates.length === 0 && !isLoading">
               <td colspan="7" class="py-6 text-center text-sm text-slate-500">
-                Sin cotizaciones registradas
+                No estimates found
               </td>
             </tr>
           </tbody>
@@ -129,31 +129,31 @@ import { ServiceItem } from '../../core/models/service.model';
     >
       <div class="w-full max-w-3xl rounded-2xl bg-white p-6 shadow-xl">
         <div class="flex items-center justify-between">
-          <div class="text-lg font-semibold">{{ editing ? 'Editar cotizacion' : 'Nueva cotizacion' }}</div>
+          <div class="text-lg font-semibold">{{ editing ? 'Edit estimate' : 'New estimate' }}</div>
           <button class="text-slate-400" (click)="closeModal()">X</button>
         </div>
 
         <form class="mt-4 space-y-4" [formGroup]="form" (ngSubmit)="save()">
           <div class="grid gap-4 md:grid-cols-2">
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Cliente</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Client</label>
               <select
                 formControlName="clientId"
                 class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
               >
-                <option value="">Seleccionar cliente</option>
+                <option value="">Select client</option>
                 <option *ngFor="let client of clients" [value]="client._id">
                   {{ client.name }}
                 </option>
               </select>
             </div>
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Servicio</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Service</label>
               <select
                 formControlName="serviceId"
                 class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
               >
-                <option value="">Seleccionar servicio</option>
+                <option value="">Select service</option>
                 <option *ngFor="let service of services" [value]="service._id">
                   {{ service.name }}
                 </option>
@@ -163,7 +163,7 @@ import { ServiceItem } from '../../core/models/service.model';
 
           <div class="grid gap-4 md:grid-cols-2">
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Titulo</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Title</label>
               <input
                 formControlName="title"
                 class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
@@ -171,34 +171,34 @@ import { ServiceItem } from '../../core/models/service.model';
               />
             </div>
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Estado</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Status</label>
               <select
                 formControlName="status"
                 class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
               >
-                <option value="draft">Borrador</option>
-                <option value="sent">Enviada</option>
-                <option value="accepted">Aceptada</option>
-                <option value="rejected">Rechazada</option>
-                <option value="expired">Vencida</option>
+                <option value="draft">Draft</option>
+                <option value="sent">Sent</option>
+                <option value="accepted">Accepted</option>
+                <option value="rejected">Rejected</option>
+                <option value="expired">Expired</option>
               </select>
             </div>
           </div>
 
           <div class="grid gap-4 md:grid-cols-4">
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Periodo</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Period</label>
               <select
                 formControlName="billingPeriod"
                 class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
               >
-                <option value="monthly">Mensual</option>
-                <option value="annual">Anual</option>
-                <option value="one_time">Unico</option>
+                <option value="monthly">Monthly</option>
+                <option value="annual">Annual</option>
+                <option value="one_time">One-time</option>
               </select>
             </div>
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Monto</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Amount</label>
               <input
                 formControlName="amount"
                 type="number"
@@ -206,7 +206,7 @@ import { ServiceItem } from '../../core/models/service.model';
               />
             </div>
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Moneda</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Currency</label>
               <select
                 formControlName="currency"
                 class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
@@ -219,7 +219,7 @@ import { ServiceItem } from '../../core/models/service.model';
           </div>
 
           <div>
-            <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Notas</label>
+            <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Notes</label>
             <textarea
               formControlName="notes"
               class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
@@ -231,14 +231,14 @@ import { ServiceItem } from '../../core/models/service.model';
 
           <div class="flex justify-end gap-3">
             <button type="button" class="text-sm text-slate-500" (click)="closeModal()">
-              Cancelar
+              Cancel
             </button>
             <button
               type="submit"
               class="rounded bg-slate-900 px-4 py-2 text-xs uppercase tracking-wide text-white"
               [disabled]="form.invalid || isSaving"
             >
-              {{ isSaving ? 'Guardando...' : 'Guardar' }}
+              {{ isSaving ? 'Saving...' : 'Save' }}
             </button>
           </div>
         </form>
@@ -251,18 +251,18 @@ import { ServiceItem } from '../../core/models/service.model';
     >
       <div class="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl">
         <div class="flex items-center justify-between">
-          <div class="text-lg font-semibold">Convertir a contrato</div>
+          <div class="text-lg font-semibold">Convert to contract</div>
           <button class="text-slate-400" (click)="closeConvert()">X</button>
         </div>
 
         <form class="mt-4 space-y-4" [formGroup]="convertForm" (ngSubmit)="convert()">
           <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-            Ajusta el precio y agrega notas antes de crear el contrato.
+            Adjust the price and add notes before creating the contract.
           </div>
 
           <div class="grid gap-4 md:grid-cols-3">
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Monto</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Amount</label>
               <input
                 formControlName="amount"
                 type="number"
@@ -270,7 +270,7 @@ import { ServiceItem } from '../../core/models/service.model';
               />
             </div>
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Inicio</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Start</label>
               <input
                 formControlName="startDate"
                 type="date"
@@ -278,7 +278,7 @@ import { ServiceItem } from '../../core/models/service.model';
               />
             </div>
             <div *ngIf="convertForm.value.billingPeriod !== 'one_time'">
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Vence</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">End</label>
               <input
                 formControlName="endDate"
                 type="date"
@@ -289,7 +289,7 @@ import { ServiceItem } from '../../core/models/service.model';
 
           <div class="grid gap-4 md:grid-cols-2">
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Notas del contrato</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Contract notes</label>
               <textarea
                 formControlName="contractNotes"
                 class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
@@ -297,7 +297,7 @@ import { ServiceItem } from '../../core/models/service.model';
               ></textarea>
             </div>
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Notas de conversion</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Conversion notes</label>
               <textarea
                 formControlName="conversionNotes"
                 class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
@@ -310,14 +310,14 @@ import { ServiceItem } from '../../core/models/service.model';
 
           <div class="flex justify-end gap-3">
             <button type="button" class="text-sm text-slate-500" (click)="closeConvert()">
-              Cancelar
+              Cancel
             </button>
             <button
               type="submit"
               class="rounded bg-slate-900 px-4 py-2 text-xs uppercase tracking-wide text-white"
               [disabled]="convertForm.invalid || isConverting"
             >
-              {{ isConverting ? 'Convirtiendo...' : 'Convertir' }}
+              {{ isConverting ? 'Converting...' : 'Convert' }}
             </button>
           </div>
         </form>
@@ -385,13 +385,13 @@ export class EstimatesComponent implements OnInit {
     this.clientsApi.list().subscribe({
       next: (response) => (this.clients = response.items),
       error: () => {
-        this.error = 'No se pudieron cargar los clientes';
+        this.error = 'Unable to load clients';
       },
     });
     this.servicesApi.list().subscribe({
       next: (items) => (this.services = items),
       error: () => {
-        this.error = 'No se pudieron cargar los servicios';
+        this.error = 'Unable to load services';
       },
     });
   }
@@ -411,7 +411,7 @@ export class EstimatesComponent implements OnInit {
           this.isLoading = false;
         },
         error: () => {
-          this.error = 'No se pudieron cargar las cotizaciones';
+        this.error = 'Unable to load estimates';
           this.isLoading = false;
         },
       });
@@ -455,7 +455,7 @@ export class EstimatesComponent implements OnInit {
 
   save() {
     if (this.form.invalid) {
-      this.validationError = 'Completa los campos obligatorios';
+      this.validationError = 'Complete the required fields';
       return;
     }
     this.isSaving = true;
@@ -481,7 +481,7 @@ export class EstimatesComponent implements OnInit {
         },
         error: () => {
           this.isSaving = false;
-          this.validationError = 'No se pudo guardar la cotizacion';
+          this.validationError = 'Unable to save estimate';
         },
       });
       return;
@@ -495,7 +495,7 @@ export class EstimatesComponent implements OnInit {
       },
       error: () => {
         this.isSaving = false;
-        this.validationError = 'No se pudo crear la cotizacion';
+        this.validationError = 'Unable to create estimate';
       },
     });
   }
@@ -504,7 +504,7 @@ export class EstimatesComponent implements OnInit {
     this.estimatesApi.remove(item._id).subscribe({
       next: () => this.load(),
       error: () => {
-        this.error = 'No se pudo eliminar la cotizacion';
+        this.error = 'Unable to delete estimate';
       },
     });
   }
@@ -530,7 +530,7 @@ export class EstimatesComponent implements OnInit {
 
   convert() {
     if (this.convertForm.invalid || !this.converting) {
-      this.convertError = 'Completa la informacion requerida';
+      this.convertError = 'Complete the required information';
       return;
     }
     this.isConverting = true;
@@ -554,23 +554,23 @@ export class EstimatesComponent implements OnInit {
       },
       error: () => {
         this.isConverting = false;
-        this.convertError = 'No se pudo convertir la cotizacion';
+        this.convertError = 'Unable to convert estimate';
       },
     });
   }
 
   getClientName(item: EstimateItem) {
     if (typeof item.clientId === 'string') {
-      return this.clients.find((client) => client._id === item.clientId)?.name ?? 'Cliente';
+      return this.clients.find((client) => client._id === item.clientId)?.name ?? 'Client';
     }
-    return item.clientId?.name ?? 'Cliente';
+    return item.clientId?.name ?? 'Client';
   }
 
   getServiceName(item: EstimateItem) {
     if (typeof item.serviceId === 'string') {
-      return this.services.find((service) => service._id === item.serviceId)?.name ?? 'Servicio';
+      return this.services.find((service) => service._id === item.serviceId)?.name ?? 'Service';
     }
-    return item.serviceId?.name ?? 'Servicio';
+    return item.serviceId?.name ?? 'Service';
   }
 
   resolveId(value: string | { _id: string }) {
@@ -580,30 +580,30 @@ export class EstimatesComponent implements OnInit {
   formatPeriod(period?: string) {
     switch (period) {
       case 'monthly':
-        return 'Mensual';
+        return 'Monthly';
       case 'annual':
-        return 'Anual';
+        return 'Annual';
       case 'one_time':
-        return 'Unico';
+        return 'One-time';
       default:
-        return 'N/D';
+        return 'N/A';
     }
   }
 
   formatStatus(status: EstimateItem['status']) {
     switch (status) {
       case 'draft':
-        return 'Borrador';
+        return 'Draft';
       case 'sent':
-        return 'Enviada';
+        return 'Sent';
       case 'accepted':
-        return 'Aceptada';
+        return 'Accepted';
       case 'rejected':
-        return 'Rechazada';
+        return 'Rejected';
       case 'expired':
-        return 'Vencida';
+        return 'Expired';
       case 'converted':
-        return 'Convertida';
+        return 'Converted';
       default:
         return status;
     }
@@ -641,7 +641,7 @@ export class EstimatesComponent implements OnInit {
     if (Number.isNaN(date.getTime())) {
       return '-';
     }
-    return date.toLocaleDateString('es-NI');
+    return date.toLocaleDateString('en-US');
   }
 
   todayISO() {

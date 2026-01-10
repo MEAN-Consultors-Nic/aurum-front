@@ -13,21 +13,21 @@ import { CategoryItem } from '../../core/models/category.model';
   template: `
     <div class="space-y-6">
       <div>
-        <div class="text-2xl font-semibold">Configuracion</div>
-        <div class="text-sm text-slate-500">Preferencias globales del sistema</div>
+        <div class="text-2xl font-semibold">Settings</div>
+        <div class="text-sm text-slate-500">Global system preferences</div>
       </div>
 
       <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <form class="space-y-4" [formGroup]="form" (ngSubmit)="save()">
           <div>
             <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">
-              Categoria para ingresos de pagos
+              Category for payment income
             </label>
             <select
               formControlName="defaultPaymentCategoryId"
               class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
             >
-              <option value="">Seleccionar categoria</option>
+              <option value="">Select category</option>
               <option *ngFor="let category of incomeCategories" [value]="category._id">
                 {{ category.name }}
               </option>
@@ -35,7 +35,7 @@ import { CategoryItem } from '../../core/models/category.model';
           </div>
 
           <div>
-            <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Tipo de cambio USD → NIO</label>
+            <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">USD to NIO exchange rate</label>
             <input
               formControlName="fxUsdToNio"
               type="number"
@@ -53,7 +53,7 @@ import { CategoryItem } from '../../core/models/category.model';
               class="rounded bg-slate-900 px-4 py-2 text-xs uppercase tracking-wide text-white"
               [disabled]="form.invalid || isSaving"
             >
-              {{ isSaving ? 'Guardando...' : 'Guardar cambios' }}
+              {{ isSaving ? 'Saving...' : 'Save changes' }}
             </button>
           </div>
         </form>
@@ -123,11 +123,11 @@ export class SettingsComponent implements OnInit {
     ]).subscribe({
       next: () => {
         this.isSaving = false;
-        this.message = 'Configuracion actualizada';
+        this.message = 'Settings updated';
       },
       error: () => {
         this.isSaving = false;
-        this.error = 'No se pudo guardar la configuracion';
+        this.error = 'Unable to save settings';
       },
     });
   }

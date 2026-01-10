@@ -63,81 +63,93 @@ import { RecurringExpenseOccurrence } from '../../core/models/recurring-expense.
         </div>
       </div>
 
-      <div class="grid gap-4 lg:grid-cols-2">
-        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div class="text-sm font-semibold text-slate-800">Due soon</div>
-          <div *ngIf="isLoadingDue" class="mt-3 text-sm text-slate-500">Loading...</div>
-          <table *ngIf="!isLoadingDue" class="mt-3 w-full text-sm">
-            <thead class="text-left text-xs uppercase tracking-wide text-slate-400">
-              <tr>
-                <th class="py-2">Client</th>
-                <th class="py-2">Service</th>
-                <th class="py-2">Balance</th>
-                <th class="py-2">Due</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let item of dueSoon" class="border-t border-slate-100">
-                <td class="py-3">{{ getClientName(item) }}</td>
-                <td class="py-3">{{ getServiceName(item) }}</td>
-                <td class="py-3">{{ formatMoney(item.balance || 0, item.currency || 'USD') }}</td>
-                <td class="py-3">{{ formatDate(item.endDate) }}</td>
-              </tr>
-              <tr *ngIf="dueSoon.length === 0 && !isLoadingDue">
-                <td colspan="4" class="py-4 text-center text-sm text-slate-500">No data</td>
-              </tr>
-            </tbody>
-          </table>
+      <div class="space-y-3">
+        <div>
+          <div class="text-sm font-semibold text-slate-800">Receivables</div>
+          <div class="text-xs text-slate-500">Due soon versus overdue contracts</div>
         </div>
+        <div class="grid gap-4 lg:grid-cols-2">
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="text-sm font-semibold text-slate-800">Due soon</div>
+            <div *ngIf="isLoadingDue" class="mt-3 text-sm text-slate-500">Loading...</div>
+            <table *ngIf="!isLoadingDue" class="mt-3 w-full text-sm">
+              <thead class="text-left text-xs uppercase tracking-wide text-slate-400">
+                <tr>
+                  <th class="py-2">Client</th>
+                  <th class="py-2">Service</th>
+                  <th class="py-2">Balance</th>
+                  <th class="py-2">Due</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of dueSoon" class="border-t border-slate-100">
+                  <td class="py-3">{{ getClientName(item) }}</td>
+                  <td class="py-3">{{ getServiceName(item) }}</td>
+                  <td class="py-3">{{ formatMoney(item.balance || 0, item.currency || 'USD') }}</td>
+                  <td class="py-3">{{ formatDate(item.endDate) }}</td>
+                </tr>
+                <tr *ngIf="dueSoon.length === 0 && !isLoadingDue">
+                  <td colspan="4" class="py-4 text-center text-sm text-slate-500">No data</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div class="text-sm font-semibold text-slate-800">Overdue</div>
-          <div *ngIf="isLoadingOverdue" class="mt-3 text-sm text-slate-500">Loading...</div>
-          <table *ngIf="!isLoadingOverdue" class="mt-3 w-full text-sm">
-            <thead class="text-left text-xs uppercase tracking-wide text-slate-400">
-              <tr>
-                <th class="py-2">Client</th>
-                <th class="py-2">Service</th>
-                <th class="py-2">Balance</th>
-                <th class="py-2">Due</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let item of overdue" class="border-t border-slate-100">
-                <td class="py-3">{{ getClientName(item) }}</td>
-                <td class="py-3">{{ getServiceName(item) }}</td>
-                <td class="py-3">{{ formatMoney(item.balance || 0, item.currency || 'USD') }}</td>
-                <td class="py-3">{{ formatDate(item.endDate) }}</td>
-              </tr>
-              <tr *ngIf="overdue.length === 0 && !isLoadingOverdue">
-                <td colspan="4" class="py-4 text-center text-sm text-slate-500">No data</td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="text-sm font-semibold text-slate-800">Overdue</div>
+            <div *ngIf="isLoadingOverdue" class="mt-3 text-sm text-slate-500">Loading...</div>
+            <table *ngIf="!isLoadingOverdue" class="mt-3 w-full text-sm">
+              <thead class="text-left text-xs uppercase tracking-wide text-slate-400">
+                <tr>
+                  <th class="py-2">Client</th>
+                  <th class="py-2">Service</th>
+                  <th class="py-2">Balance</th>
+                  <th class="py-2">Due</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of overdue" class="border-t border-slate-100">
+                  <td class="py-3">{{ getClientName(item) }}</td>
+                  <td class="py-3">{{ getServiceName(item) }}</td>
+                  <td class="py-3">{{ formatMoney(item.balance || 0, item.currency || 'USD') }}</td>
+                  <td class="py-3">{{ formatDate(item.endDate) }}</td>
+                </tr>
+                <tr *ngIf="overdue.length === 0 && !isLoadingOverdue">
+                  <td colspan="4" class="py-4 text-center text-sm text-slate-500">No data</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
       <div class="space-y-4">
-        <div class="text-sm font-semibold text-slate-800">Personal finance</div>
-        <div class="grid gap-4 md:grid-cols-2">
-          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div class="text-xs uppercase tracking-wide text-slate-500">Total balance USD</div>
-            <div class="text-2xl font-semibold text-slate-900">
-              {{ formatMoney(financeOverview?.balanceUsd || 0, 'USD') }}
-            </div>
-          </div>
-          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div class="text-xs uppercase tracking-wide text-slate-500">Total balance NIO</div>
-            <div class="text-2xl font-semibold text-slate-900">
-              {{ formatMoney(financeOverview?.balanceNio || 0, 'NIO') }}
-            </div>
-          </div>
+        <div>
+          <div class="text-sm font-semibold text-slate-800">Cashflow snapshot</div>
+          <div class="text-xs text-slate-500">Balances, planned income, and alerts</div>
         </div>
+        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="text-xs uppercase tracking-wide text-slate-500">Total balance</div>
+            <div class="mt-3 space-y-2 text-sm text-slate-600">
+              <div class="flex items-center justify-between">
+                <span>USD</span>
+                <span class="text-base font-semibold text-slate-900">
+                  {{ formatMoney(financeOverview?.balanceUsd || 0, 'USD') }}
+                </span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span>NIO</span>
+                <span class="text-base font-semibold text-slate-900">
+                  {{ formatMoney(financeOverview?.balanceNio || 0, 'NIO') }}
+                </span>
+              </div>
+            </div>
+          </div>
 
-        <div class="grid gap-4 md:grid-cols-2">
           <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <div class="text-xs uppercase tracking-wide text-slate-500">Planned income (month)</div>
-            <div class="text-lg font-semibold text-slate-900">
+            <div class="mt-2 text-lg font-semibold text-slate-900">
               {{ formatMoney(plannedSummary?.totals?.plannedUsd ?? 0, 'USD') }}
               / {{ formatMoney(plannedSummary?.totals?.plannedNio ?? 0, 'NIO') }}
             </div>
@@ -146,49 +158,39 @@ import { RecurringExpenseOccurrence } from '../../core/models/recurring-expense.
               / {{ formatMoney(plannedSummary?.totals?.confirmedNio ?? 0, 'NIO') }}
             </div>
           </div>
+
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="text-xs uppercase tracking-wide text-slate-500">Recurring expenses (month)</div>
+            <div class="mt-2 text-lg font-semibold text-slate-900">
+              {{ formatMoney(recurringPlannedTotal('USD'), 'USD') }}
+              / {{ formatMoney(recurringPlannedTotal('NIO'), 'NIO') }}
+            </div>
+            <div class="text-xs text-slate-500">Planned recurring charges</div>
+          </div>
+
           <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <div class="text-xs uppercase tracking-wide text-slate-500">Overdue planned income</div>
             <div class="text-2xl font-semibold text-slate-900">
               {{ plannedAlerts?.count || 0 }}
             </div>
           </div>
-        </div>
-        <div class="grid gap-4 md:grid-cols-2">
-          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div class="text-xs uppercase tracking-wide text-slate-500">Recurring expenses (month)</div>
-            <div class="text-lg font-semibold text-slate-900">
-              {{ formatMoney(recurringPlannedTotal('USD'), 'USD') }}
-              / {{ formatMoney(recurringPlannedTotal('NIO'), 'NIO') }}
-            </div>
-            <div class="text-xs text-slate-500">Planned recurring charges</div>
-          </div>
+
           <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <div class="text-xs uppercase tracking-wide text-slate-500">Overdue recurring expenses</div>
             <div class="text-2xl font-semibold text-slate-900">
               {{ overdueRecurringCount() }}
             </div>
           </div>
-        </div>
-        <div class="grid gap-4 md:grid-cols-2">
+
           <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <div class="text-xs uppercase tracking-wide text-slate-500">Budget alerts</div>
             <div class="text-2xl font-semibold text-slate-900">{{ budgetAlerts.length }}</div>
-            <div class="text-xs text-slate-500">
-              Categories near limit
-            </div>
-          </div>
-          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div class="text-xs uppercase tracking-wide text-slate-500">Top budget alert</div>
-            <div class="text-lg font-semibold text-slate-900" *ngIf="budgetAlerts.length === 0">
+            <div class="text-xs text-slate-500" *ngIf="budgetAlerts.length === 0">
               No alerts
             </div>
-            <div *ngIf="budgetAlerts.length > 0">
-              <div class="text-lg font-semibold text-slate-900">
-                {{ budgetAlerts[0].categoryName }}
-              </div>
-              <div class="text-xs text-slate-500">
-                {{ (budgetAlerts[0].usage * 100).toFixed(0) }}% used
-              </div>
+            <div class="text-xs text-slate-500" *ngIf="budgetAlerts.length > 0">
+              {{ budgetAlerts[0].categoryName }} ·
+              {{ (budgetAlerts[0].usage * 100).toFixed(0) }}% used
             </div>
           </div>
         </div>
@@ -579,7 +581,7 @@ export class DashboardComponent implements OnInit {
     if (!date) {
       return '-';
     }
-    return new Date(date).toLocaleDateString('es-ES');
+    return new Date(date).toLocaleDateString('en-US');
   }
 
   formatMoney(amount: number, currency: 'USD' | 'NIO' = 'USD') {

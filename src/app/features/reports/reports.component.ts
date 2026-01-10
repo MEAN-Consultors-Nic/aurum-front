@@ -11,20 +11,20 @@ import { PaymentsReportItem, ReceivableItem } from '../../core/models/report.mod
   template: `
     <div class="space-y-6">
       <div>
-        <div class="text-2xl font-semibold">Reportes</div>
-        <div class="text-sm text-slate-500">Resumen de por cobrar y pagos</div>
+        <div class="text-2xl font-semibold">Reports</div>
+        <div class="text-sm text-slate-500">Receivables and payments summary</div>
       </div>
 
       <div class="grid gap-4 lg:grid-cols-2">
         <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div class="text-sm font-semibold text-slate-800">Receivables por cliente</div>
+          <div class="text-sm font-semibold text-slate-800">Receivables by client</div>
           <div *ngIf="isLoadingReceivables" class="mt-2 text-sm text-slate-500">
-            Cargando...
+            Loading...
           </div>
           <table *ngIf="!isLoadingReceivables" class="mt-4 w-full text-sm">
             <thead class="text-left text-xs uppercase tracking-wide text-slate-400">
               <tr>
-                <th class="py-2">Cliente</th>
+                <th class="py-2">Client</th>
                 <th class="py-2 text-right">USD</th>
                 <th class="py-2 text-right">NIO</th>
               </tr>
@@ -36,21 +36,21 @@ import { PaymentsReportItem, ReceivableItem } from '../../core/models/report.mod
                 <td class="py-3 text-right">{{ formatMoney(item.totalNio, 'NIO') }}</td>
               </tr>
               <tr *ngIf="receivablesByClient.length === 0 && !isLoadingReceivables">
-                <td colspan="3" class="py-4 text-center text-sm text-slate-500">Sin datos</td>
+                <td colspan="3" class="py-4 text-center text-sm text-slate-500">No data</td>
               </tr>
             </tbody>
           </table>
         </div>
 
         <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div class="text-sm font-semibold text-slate-800">Receivables por servicio</div>
+          <div class="text-sm font-semibold text-slate-800">Receivables by service</div>
           <div *ngIf="isLoadingReceivables" class="mt-2 text-sm text-slate-500">
-            Cargando...
+            Loading...
           </div>
           <table *ngIf="!isLoadingReceivables" class="mt-4 w-full text-sm">
             <thead class="text-left text-xs uppercase tracking-wide text-slate-400">
               <tr>
-                <th class="py-2">Servicio</th>
+                <th class="py-2">Service</th>
                 <th class="py-2 text-right">USD</th>
                 <th class="py-2 text-right">NIO</th>
               </tr>
@@ -62,7 +62,7 @@ import { PaymentsReportItem, ReceivableItem } from '../../core/models/report.mod
                 <td class="py-3 text-right">{{ formatMoney(item.totalNio, 'NIO') }}</td>
               </tr>
               <tr *ngIf="receivablesByService.length === 0 && !isLoadingReceivables">
-                <td colspan="3" class="py-4 text-center text-sm text-slate-500">Sin datos</td>
+                <td colspan="3" class="py-4 text-center text-sm text-slate-500">No data</td>
               </tr>
             </tbody>
           </table>
@@ -72,8 +72,8 @@ import { PaymentsReportItem, ReceivableItem } from '../../core/models/report.mod
       <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <div class="text-sm font-semibold text-slate-800">Pagos por rango</div>
-            <div class="text-xs text-slate-500">Selecciona fechas para filtrar pagos</div>
+            <div class="text-sm font-semibold text-slate-800">Payments by date range</div>
+            <div class="text-xs text-slate-500">Select dates to filter payments</div>
           </div>
           <div class="flex flex-wrap gap-2">
             <input
@@ -90,33 +90,33 @@ import { PaymentsReportItem, ReceivableItem } from '../../core/models/report.mod
               class="rounded bg-slate-900 px-3 py-2 text-xs uppercase tracking-wide text-white"
               (click)="loadPayments()"
             >
-              Buscar
+              Search
             </button>
           </div>
         </div>
 
-        <div *ngIf="isLoadingPayments" class="mt-3 text-sm text-slate-500">Cargando pagos...</div>
+        <div *ngIf="isLoadingPayments" class="mt-3 text-sm text-slate-500">Loading payments...</div>
         <div *ngIf="paymentsError" class="mt-3 text-sm text-red-600">{{ paymentsError }}</div>
 
         <div class="mt-4 flex items-center justify-between">
-          <div class="text-xs uppercase tracking-wide text-slate-400">Total aplicado USD</div>
+          <div class="text-xs uppercase tracking-wide text-slate-400">Total applied USD</div>
           <div class="text-lg font-semibold">{{ formatMoney(paymentsTotalUsd, 'USD') }}</div>
         </div>
         <div class="mt-2 flex items-center justify-between">
-          <div class="text-xs uppercase tracking-wide text-slate-400">Total aplicado NIO</div>
+          <div class="text-xs uppercase tracking-wide text-slate-400">Total applied NIO</div>
           <div class="text-lg font-semibold">{{ formatMoney(paymentsTotalNio, 'NIO') }}</div>
         </div>
 
         <table *ngIf="!isLoadingPayments" class="mt-4 w-full text-sm">
           <thead class="text-left text-xs uppercase tracking-wide text-slate-400">
             <tr>
-              <th class="py-2">Cliente</th>
-              <th class="py-2">Contrato</th>
-              <th class="py-2">Fecha</th>
-              <th class="py-2">Monto</th>
-              <th class="py-2">Retencion</th>
-              <th class="py-2">Moneda</th>
-              <th class="py-2">Metodo</th>
+              <th class="py-2">Client</th>
+              <th class="py-2">Contract</th>
+              <th class="py-2">Date</th>
+              <th class="py-2">Amount</th>
+              <th class="py-2">Retention</th>
+              <th class="py-2">Currency</th>
+              <th class="py-2">Method</th>
             </tr>
           </thead>
           <tbody>
@@ -130,7 +130,7 @@ import { PaymentsReportItem, ReceivableItem } from '../../core/models/report.mod
               <td class="py-3">{{ methodLabel(item.method) }}</td>
             </tr>
             <tr *ngIf="payments.length === 0 && !isLoadingPayments">
-              <td colspan="7" class="py-4 text-center text-sm text-slate-500">Sin pagos</td>
+              <td colspan="7" class="py-4 text-center text-sm text-slate-500">No payments</td>
             </tr>
           </tbody>
         </table>
@@ -189,7 +189,7 @@ export class ReportsComponent implements OnInit {
       },
       error: () => {
         this.isLoadingPayments = false;
-        this.paymentsError = 'No se pudo cargar el reporte';
+        this.paymentsError = 'Unable to load report';
       },
     });
   }
@@ -221,22 +221,22 @@ export class ReportsComponent implements OnInit {
     if (!date) {
       return '-';
     }
-    return new Date(date).toLocaleDateString('es-ES');
+    return new Date(date).toLocaleDateString('en-US');
   }
 
   methodLabel(method: PaymentsReportItem['method']) {
     if (method === 'cash') {
-      return 'Efectivo';
+      return 'Cash';
     }
     if (method === 'bank') {
-      return 'Banco';
+      return 'Bank';
     }
     if (method === 'card') {
-      return 'Tarjeta';
+      return 'Card';
     }
     if (method === 'transfer') {
-      return 'Transferencia';
+      return 'Transfer';
     }
-    return 'Otro';
+    return 'Other';
   }
 }

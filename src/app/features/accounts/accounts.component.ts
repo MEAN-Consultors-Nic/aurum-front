@@ -288,15 +288,15 @@ export class AccountsComponent implements OnInit {
 
   formatType(type: AccountItem['type']) {
     if (type === 'bank') {
-      return 'Banco';
+      return 'Bank';
     }
     if (type === 'paypal') {
       return 'PayPal';
     }
     if (type === 'cash') {
-      return 'Efectivo';
+      return 'Cash';
     }
-    return 'Otro';
+    return 'Other';
   }
 
   formatMoney(amount: number, currency: 'USD' | 'NIO') {

@@ -12,28 +12,28 @@ import { CategoryItem } from '../../core/models/category.model';
     <div class="space-y-6">
       <div class="flex items-center justify-between">
         <div>
-          <div class="text-2xl font-semibold">Categorias</div>
-          <div class="text-sm text-slate-500">Organiza ingresos y gastos</div>
+          <div class="text-2xl font-semibold">Categories</div>
+          <div class="text-sm text-slate-500">Organize income and expenses</div>
         </div>
         <button
           class="rounded bg-slate-900 px-3 py-2 text-xs uppercase tracking-wide text-white"
           (click)="openCreate()"
         >
-          Nueva categoria
+          New category
         </button>
       </div>
 
       <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div *ngIf="isLoading" class="text-sm text-slate-500">Cargando categorias...</div>
+        <div *ngIf="isLoading" class="text-sm text-slate-500">Loading categories...</div>
         <div *ngIf="error" class="text-sm text-red-600">{{ error }}</div>
 
         <table *ngIf="!isLoading" class="mt-2 w-full text-sm">
           <thead class="text-left text-xs uppercase tracking-wide text-slate-400">
             <tr>
-              <th class="py-2">Nombre</th>
-              <th class="py-2">Tipo</th>
-              <th class="py-2">Padre</th>
-              <th class="py-2 text-right">Acciones</th>
+              <th class="py-2">Name</th>
+              <th class="py-2">Type</th>
+              <th class="py-2">Parent</th>
+              <th class="py-2 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -44,16 +44,16 @@ import { CategoryItem } from '../../core/models/category.model';
                   {{ row.item.name }}
                 </div>
               </td>
-              <td class="py-3">{{ row.item.type === 'income' ? 'Ingreso' : 'Gasto' }}</td>
+              <td class="py-3">{{ row.item.type === 'income' ? 'Income' : 'Expense' }}</td>
               <td class="py-3">{{ resolveParentName(row.item.parentId) }}</td>
               <td class="py-3 text-right">
-                <button class="text-xs text-slate-700" (click)="openEdit(row.item)">Editar</button>
-                <button class="ml-3 text-xs text-slate-400" (click)="remove(row.item)">Eliminar</button>
+                <button class="text-xs text-slate-700" (click)="openEdit(row.item)">Edit</button>
+                <button class="ml-3 text-xs text-slate-400" (click)="remove(row.item)">Delete</button>
               </td>
             </tr>
             <tr *ngIf="displayCategories.length === 0 && !isLoading">
               <td colspan="4" class="py-6 text-center text-sm text-slate-500">
-                Sin categorias registradas
+                No categories found
               </td>
             </tr>
           </tbody>
@@ -67,38 +67,38 @@ import { CategoryItem } from '../../core/models/category.model';
     >
       <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
         <div class="flex items-center justify-between">
-          <div class="text-lg font-semibold">{{ editing ? 'Editar categoria' : 'Nueva categoria' }}</div>
+          <div class="text-lg font-semibold">{{ editing ? 'Edit category' : 'New category' }}</div>
           <button class="text-slate-400" (click)="closeModal()">X</button>
         </div>
 
         <form class="mt-4 space-y-4" [formGroup]="form" (ngSubmit)="save()">
           <div>
-            <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Nombre</label>
+            <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Name</label>
             <input
               formControlName="name"
               class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              placeholder="Alimentacion"
+              placeholder="Food"
             />
           </div>
 
           <div class="grid gap-4 md:grid-cols-2">
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Tipo</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Type</label>
               <select
                 formControlName="type"
                 class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
               >
-                <option value="income">Ingreso</option>
-                <option value="expense">Gasto</option>
+                <option value="income">Income</option>
+                <option value="expense">Expense</option>
               </select>
             </div>
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Categoria padre</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Parent category</label>
               <select
                 formControlName="parentId"
                 class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
               >
-                <option value="">Sin padre</option>
+                <option value="">No parent</option>
                 <option *ngFor="let category of categories" [value]="category._id">
                   {{ category.name }}
                 </option>
@@ -110,14 +110,14 @@ import { CategoryItem } from '../../core/models/category.model';
 
           <div class="flex justify-end gap-3">
             <button type="button" class="text-sm text-slate-500" (click)="closeModal()">
-              Cancelar
+              Cancel
             </button>
             <button
               type="submit"
               class="rounded bg-slate-900 px-4 py-2 text-xs uppercase tracking-wide text-white"
               [disabled]="form.invalid || isSaving"
             >
-              {{ isSaving ? 'Guardando...' : 'Guardar' }}
+              {{ isSaving ? 'Saving...' : 'Save' }}
             </button>
           </div>
         </form>
@@ -157,7 +157,7 @@ export class CategoriesComponent implements OnInit {
         this.isLoading = false;
       },
       error: () => {
-        this.error = 'No se pudo cargar las categorias';
+        this.error = 'Unable to load categories';
         this.isLoading = false;
       },
     });
@@ -204,7 +204,7 @@ export class CategoriesComponent implements OnInit {
         },
         error: () => {
           this.isSaving = false;
-          this.error = 'No se pudo guardar la categoria';
+          this.error = 'Unable to save category';
         },
       });
       return;
@@ -218,7 +218,7 @@ export class CategoriesComponent implements OnInit {
       },
       error: () => {
         this.isSaving = false;
-        this.error = 'No se pudo crear la categoria';
+        this.error = 'Unable to create category';
       },
     });
   }
@@ -227,7 +227,7 @@ export class CategoriesComponent implements OnInit {
     this.categoriesApi.remove(item._id).subscribe({
       next: () => this.load(),
       error: () => {
-        this.error = 'No se pudo eliminar la categoria';
+        this.error = 'Unable to delete category';
       },
     });
   }

@@ -16,14 +16,14 @@ import { ServiceItem } from '../../core/models/service.model';
     <div class="space-y-6">
       <div class="flex items-center justify-between">
         <div>
-          <div class="text-2xl font-semibold">Contratos</div>
-          <div class="text-sm text-slate-500">Gestion de contratos y vencimientos</div>
+          <div class="text-2xl font-semibold">Contracts</div>
+          <div class="text-sm text-slate-500">Contract management and due dates</div>
         </div>
         <button
           class="rounded bg-slate-900 px-3 py-2 text-xs uppercase tracking-wide text-white"
           (click)="openCreate()"
         >
-          Nuevo contrato
+          New contract
         </button>
       </div>
 
@@ -33,22 +33,22 @@ import { ServiceItem } from '../../core/models/service.model';
           [(ngModel)]="search"
           (keyup.enter)="load()"
           class="rounded-lg border border-slate-200 px-3 py-2 text-sm"
-          placeholder="Buscar por titulo"
+          placeholder="Search by title"
         />
         <select
           [(ngModel)]="statusFilter"
           class="rounded-lg border border-slate-200 px-3 py-2 text-sm"
         >
-          <option value="">Todos los estados</option>
-          <option value="active">Activo</option>
-          <option value="expired">Vencido</option>
-          <option value="cancelled">Cancelado</option>
+          <option value="">All statuses</option>
+          <option value="active">Active</option>
+          <option value="expired">Expired</option>
+          <option value="cancelled">Cancelled</option>
         </select>
         <select
           [(ngModel)]="clientFilter"
           class="rounded-lg border border-slate-200 px-3 py-2 text-sm"
         >
-          <option value="">Todos los clientes</option>
+          <option value="">All clients</option>
           <option *ngFor="let client of clients" [value]="client._id">
             {{ client.name }}
           </option>
@@ -69,26 +69,26 @@ import { ServiceItem } from '../../core/models/service.model';
           class="rounded bg-slate-900 px-3 py-2 text-xs uppercase tracking-wide text-white"
           (click)="load()"
         >
-          Filtrar
+          Filter
         </button>
       </div>
 
       <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div *ngIf="isLoading" class="text-sm text-slate-500">Cargando contratos...</div>
+        <div *ngIf="isLoading" class="text-sm text-slate-500">Loading contracts...</div>
         <div *ngIf="error" class="text-sm text-red-600">{{ error }}</div>
 
         <table *ngIf="!isLoading" class="mt-2 w-full text-sm">
           <thead class="text-left text-xs uppercase tracking-wide text-slate-400">
             <tr>
-              <th class="py-2">Cliente</th>
-              <th class="py-2">Servicio</th>
-              <th class="py-2">Periodo</th>
-              <th class="py-2">Monto</th>
-              <th class="py-2">Pagado</th>
+              <th class="py-2">Client</th>
+              <th class="py-2">Service</th>
+              <th class="py-2">Period</th>
+              <th class="py-2">Amount</th>
+              <th class="py-2">Paid</th>
               <th class="py-2">Balance</th>
-              <th class="py-2">Vence</th>
-              <th class="py-2">Estado</th>
-              <th class="py-2 text-right">Acciones</th>
+              <th class="py-2">Due</th>
+              <th class="py-2">Status</th>
+              <th class="py-2 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -109,20 +109,20 @@ import { ServiceItem } from '../../core/models/service.model';
                 </span>
               </td>
               <td class="py-3 text-right">
-                <button class="text-xs text-slate-700" (click)="openEdit(item)">Editar</button>
+                <button class="text-xs text-slate-700" (click)="openEdit(item)">Edit</button>
                 <button
                   class="ml-3 text-xs text-amber-600"
                   (click)="cancel(item)"
                   [disabled]="item.status === 'cancelled'"
                 >
-                  Cancelar
+                  Cancel
                 </button>
-                <button class="ml-3 text-xs text-slate-400" (click)="remove(item)">Eliminar</button>
+                <button class="ml-3 text-xs text-slate-400" (click)="remove(item)">Delete</button>
               </td>
             </tr>
             <tr *ngIf="contracts.length === 0 && !isLoading">
               <td colspan="9" class="py-6 text-center text-sm text-slate-500">
-                Sin contratos registrados
+                No contracts found
               </td>
             </tr>
           </tbody>
@@ -136,31 +136,31 @@ import { ServiceItem } from '../../core/models/service.model';
     >
       <div class="w-full max-w-3xl rounded-2xl bg-white p-6 shadow-xl">
         <div class="flex items-center justify-between">
-          <div class="text-lg font-semibold">{{ editing ? 'Editar contrato' : 'Nuevo contrato' }}</div>
+          <div class="text-lg font-semibold">{{ editing ? 'Edit contract' : 'New contract' }}</div>
           <button class="text-slate-400" (click)="closeModal()">X</button>
         </div>
 
         <form class="mt-4 space-y-4" [formGroup]="form" (ngSubmit)="save()">
           <div class="grid gap-4 md:grid-cols-2">
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Cliente</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Client</label>
               <select
                 formControlName="clientId"
                 class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
               >
-                <option value="">Seleccionar cliente</option>
+                <option value="">Select client</option>
                 <option *ngFor="let client of clients" [value]="client._id">
                   {{ client.name }}
                 </option>
               </select>
             </div>
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Servicio</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Service</label>
               <select
                 formControlName="serviceId"
                 class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
               >
-                <option value="">Seleccionar servicio</option>
+                <option value="">Select service</option>
                 <option *ngFor="let service of services" [value]="service._id">
                   {{ service.name }}
                 </option>
@@ -170,7 +170,7 @@ import { ServiceItem } from '../../core/models/service.model';
 
           <div class="grid gap-4 md:grid-cols-2">
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Titulo</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Title</label>
               <input
                 formControlName="title"
                 class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
@@ -178,32 +178,32 @@ import { ServiceItem } from '../../core/models/service.model';
               />
             </div>
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Estado</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Status</label>
               <select
                 formControlName="status"
                 class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
               >
-                <option value="active">Activo</option>
-                <option value="expired">Vencido</option>
-                <option value="cancelled">Cancelado</option>
+                <option value="active">Active</option>
+                <option value="expired">Expired</option>
+                <option value="cancelled">Cancelled</option>
               </select>
             </div>
           </div>
 
           <div class="grid gap-4 md:grid-cols-4">
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Periodo</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Period</label>
               <select
                 formControlName="billingPeriod"
                 class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
               >
-                <option value="monthly">Mensual</option>
-                <option value="annual">Anual</option>
-                <option value="one_time">Unico</option>
+                <option value="monthly">Monthly</option>
+                <option value="annual">Annual</option>
+                <option value="one_time">One-time</option>
               </select>
             </div>
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Monto</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Amount</label>
               <input
                 formControlName="amount"
                 type="number"
@@ -211,7 +211,7 @@ import { ServiceItem } from '../../core/models/service.model';
               />
             </div>
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Moneda</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Currency</label>
               <select
                 formControlName="currency"
                 class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
@@ -222,7 +222,7 @@ import { ServiceItem } from '../../core/models/service.model';
               </select>
             </div>
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Inicio</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Start</label>
               <input
                 formControlName="startDate"
                 type="date"
@@ -232,19 +232,19 @@ import { ServiceItem } from '../../core/models/service.model';
           </div>
 
           <div>
-            <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Vence</label>
+            <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">End date</label>
             <input
               formControlName="endDate"
               type="date"
               class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
             />
             <div *ngIf="form.value.billingPeriod === 'one_time'" class="mt-1 text-xs text-slate-400">
-              Opcional para contratos unicos.
+              Optional for one-time contracts.
             </div>
           </div>
 
           <div>
-            <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Notas</label>
+            <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Notes</label>
             <textarea
               formControlName="notes"
               class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
@@ -256,14 +256,14 @@ import { ServiceItem } from '../../core/models/service.model';
 
           <div class="flex justify-end gap-3">
             <button type="button" class="text-sm text-slate-500" (click)="closeModal()">
-              Cancelar
+              Cancel
             </button>
             <button
               type="submit"
               class="rounded bg-slate-900 px-4 py-2 text-xs uppercase tracking-wide text-white"
               [disabled]="form.invalid || isSaving"
             >
-              {{ isSaving ? 'Guardando...' : 'Guardar' }}
+              {{ isSaving ? 'Saving...' : 'Save' }}
             </button>
           </div>
         </form>
@@ -347,7 +347,7 @@ export class ContractsComponent implements OnInit {
           this.isLoading = false;
         },
         error: () => {
-          this.error = 'No se pudo cargar el listado';
+          this.error = 'Unable to load list';
           this.isLoading = false;
         },
       });
@@ -401,7 +401,7 @@ export class ContractsComponent implements OnInit {
     const billingPeriod = this.form.value.billingPeriod as 'monthly' | 'annual' | 'one_time';
     const endDate = this.form.value.endDate || undefined;
     if (billingPeriod !== 'one_time' && !endDate) {
-      this.validationError = 'endDate es requerido para contratos recurrentes';
+      this.validationError = 'End date is required for recurring contracts';
       return;
     }
 
@@ -429,7 +429,7 @@ export class ContractsComponent implements OnInit {
         },
         error: () => {
           this.isSaving = false;
-          this.error = 'No se pudo guardar el contrato';
+          this.error = 'Unable to save contract';
         },
       });
       return;
@@ -443,7 +443,7 @@ export class ContractsComponent implements OnInit {
       },
       error: () => {
         this.isSaving = false;
-        this.error = 'No se pudo crear el contrato';
+        this.error = 'Unable to create contract';
       },
     });
   }
@@ -455,20 +455,20 @@ export class ContractsComponent implements OnInit {
     this.contractsApi.cancel(item._id).subscribe({
       next: () => this.load(),
       error: () => {
-        this.error = 'No se pudo cancelar el contrato';
+        this.error = 'Unable to cancel contract';
       },
     });
   }
 
   remove(item: ContractItem) {
-    const confirmed = confirm(`Eliminar contrato ${item.title || item._id}?`);
+    const confirmed = confirm(`Delete contract ${item.title || item._id}?`);
     if (!confirmed) {
       return;
     }
     this.contractsApi.remove(item._id).subscribe({
       next: () => this.load(),
       error: () => {
-        this.error = 'No se pudo eliminar el contrato';
+        this.error = 'Unable to delete contract';
       },
     });
   }
@@ -497,22 +497,22 @@ export class ContractsComponent implements OnInit {
 
   formatPeriod(period: 'monthly' | 'annual' | 'one_time') {
     if (period === 'monthly') {
-      return 'Mensual';
+      return 'Monthly';
     }
     if (period === 'annual') {
-      return 'Anual';
+      return 'Annual';
     }
-    return 'Unico';
+    return 'One-time';
   }
 
   formatStatus(status: 'active' | 'expired' | 'cancelled') {
     if (status === 'active') {
-      return 'Activo';
+      return 'Active';
     }
     if (status === 'expired') {
-      return 'Vencido';
+      return 'Expired';
     }
-    return 'Cancelado';
+    return 'Cancelled';
   }
 
   statusClass(status: 'active' | 'expired' | 'cancelled') {
@@ -529,7 +529,7 @@ export class ContractsComponent implements OnInit {
     if (!date) {
       return '-';
     }
-    return new Date(date).toLocaleDateString('es-ES');
+    return new Date(date).toLocaleDateString('en-US');
   }
 
   toDateInput(date?: string) {

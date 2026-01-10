@@ -12,58 +12,58 @@ import { ServiceItem } from '../../core/models/service.model';
     <div class="space-y-6">
       <div class="flex items-center justify-between">
         <div>
-          <div class="text-2xl font-semibold">Servicios</div>
-          <div class="text-sm text-slate-500">Catalogo y configuracion de servicios</div>
+          <div class="text-2xl font-semibold">Services</div>
+          <div class="text-sm text-slate-500">Service catalog and configuration</div>
         </div>
         <button
           class="rounded bg-slate-900 px-3 py-2 text-xs uppercase tracking-wide text-white"
           (click)="openCreate()"
         >
-          Nuevo servicio
+          New service
         </button>
       </div>
 
       <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div *ngIf="isLoading" class="text-sm text-slate-500">Cargando servicios...</div>
+        <div *ngIf="isLoading" class="text-sm text-slate-500">Loading services...</div>
         <div *ngIf="error" class="text-sm text-red-600">{{ error }}</div>
 
         <table *ngIf="!isLoading" class="mt-2 w-full text-sm">
           <thead class="text-left text-xs uppercase tracking-wide text-slate-400">
             <tr>
-              <th class="py-2">Nombre</th>
-              <th class="py-2">Tipo</th>
-              <th class="py-2">Periodo</th>
-              <th class="py-2">Estado</th>
-              <th class="py-2 text-right">Acciones</th>
+              <th class="py-2">Name</th>
+              <th class="py-2">Type</th>
+              <th class="py-2">Period</th>
+              <th class="py-2">Status</th>
+              <th class="py-2 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let item of services" class="border-t border-slate-100">
               <td class="py-3">
                 <div class="font-medium text-slate-900">{{ item.name }}</div>
-                <div class="text-xs text-slate-500">{{ item.description || 'Sin descripcion' }}</div>
+                <div class="text-xs text-slate-500">{{ item.description || 'No description' }}</div>
               </td>
-              <td class="py-3">{{ item.billingType === 'recurring' ? 'Recurrente' : 'Unico' }}</td>
+              <td class="py-3">{{ item.billingType === 'recurring' ? 'Recurring' : 'One-time' }}</td>
               <td class="py-3">{{ formatPeriod(item.defaultPeriod) }}</td>
               <td class="py-3">
                 <span
                   class="rounded-full px-2 py-1 text-xs"
                   [ngClass]="item.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'"
                 >
-                  {{ item.isActive ? 'Activo' : 'Inactivo' }}
+                  {{ item.isActive ? 'Active' : 'Inactive' }}
                 </span>
               </td>
               <td class="py-3 text-right">
-                <button class="text-xs text-slate-700" (click)="openEdit(item)">Editar</button>
+                <button class="text-xs text-slate-700" (click)="openEdit(item)">Edit</button>
                 <button class="ml-3 text-xs text-red-600" (click)="toggleStatus(item)">
-                  {{ item.isActive ? 'Desactivar' : 'Activar' }}
+                  {{ item.isActive ? 'Deactivate' : 'Activate' }}
                 </button>
-                <button class="ml-3 text-xs text-slate-400" (click)="remove(item)">Eliminar</button>
+                <button class="ml-3 text-xs text-slate-400" (click)="remove(item)">Delete</button>
               </td>
             </tr>
             <tr *ngIf="services.length === 0 && !isLoading">
               <td colspan="5" class="py-6 text-center text-sm text-slate-500">
-                Sin servicios registrados
+                No services found
               </td>
             </tr>
           </tbody>
@@ -77,13 +77,13 @@ import { ServiceItem } from '../../core/models/service.model';
     >
       <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
         <div class="flex items-center justify-between">
-          <div class="text-lg font-semibold">{{ editing ? 'Editar servicio' : 'Nuevo servicio' }}</div>
+          <div class="text-lg font-semibold">{{ editing ? 'Edit service' : 'New service' }}</div>
           <button class="text-slate-400" (click)="closeModal()">X</button>
         </div>
 
         <form class="mt-4 space-y-4" [formGroup]="form" (ngSubmit)="save()">
           <div>
-            <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Nombre</label>
+            <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Name</label>
             <input
               formControlName="name"
               class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
@@ -93,31 +93,31 @@ import { ServiceItem } from '../../core/models/service.model';
 
           <div class="grid gap-4 md:grid-cols-2">
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Tipo</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Type</label>
               <select
                 formControlName="billingType"
                 class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
               >
-                <option value="recurring">Recurrente</option>
-                <option value="one_time">Unico</option>
+                <option value="recurring">Recurring</option>
+                <option value="one_time">One-time</option>
               </select>
             </div>
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Periodo</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Period</label>
               <select
                 formControlName="defaultPeriod"
                 class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
               >
-                <option value="">Sin definir</option>
-                <option value="monthly">Mensual</option>
-                <option value="annual">Anual</option>
-                <option value="one_time">Unico</option>
+                <option value="">Not set</option>
+                <option value="monthly">Monthly</option>
+                <option value="annual">Annual</option>
+                <option value="one_time">One-time</option>
               </select>
             </div>
           </div>
 
           <div>
-            <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Descripcion</label>
+            <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Description</label>
             <textarea
               formControlName="description"
               class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
@@ -127,19 +127,19 @@ import { ServiceItem } from '../../core/models/service.model';
 
           <div *ngIf="editing" class="flex items-center gap-2 text-sm text-slate-600">
             <input type="checkbox" formControlName="isActive" class="h-4 w-4" />
-            <span>Activo</span>
+            <span>Active</span>
           </div>
 
           <div class="flex justify-end gap-3">
             <button type="button" class="text-sm text-slate-500" (click)="closeModal()">
-              Cancelar
+              Cancel
             </button>
             <button
               type="submit"
               class="rounded bg-slate-900 px-4 py-2 text-xs uppercase tracking-wide text-white"
               [disabled]="form.invalid || isSaving"
             >
-              {{ isSaving ? 'Guardando...' : 'Guardar' }}
+              {{ isSaving ? 'Saving...' : 'Save' }}
             </button>
           </div>
         </form>
@@ -183,7 +183,7 @@ export class ServicesComponent implements OnInit {
         this.isLoading = false;
       },
       error: () => {
-        this.error = 'No se pudo cargar el catalogo';
+        this.error = 'Unable to load catalog';
         this.isLoading = false;
       },
     });
@@ -249,7 +249,7 @@ export class ServicesComponent implements OnInit {
           },
           error: () => {
             this.isSaving = false;
-            this.error = 'No se pudo guardar el servicio';
+            this.error = 'Unable to save service';
           },
         });
       return;
@@ -263,7 +263,7 @@ export class ServicesComponent implements OnInit {
       },
       error: () => {
         this.isSaving = false;
-        this.error = 'No se pudo crear el servicio';
+        this.error = 'Unable to create service';
       },
     });
   }
@@ -272,20 +272,20 @@ export class ServicesComponent implements OnInit {
     this.servicesApi.update(item._id, { isActive: !item.isActive }).subscribe({
       next: () => this.load(),
       error: () => {
-        this.error = 'No se pudo actualizar el estado';
+        this.error = 'Unable to update status';
       },
     });
   }
 
   remove(item: ServiceItem) {
-    const confirmed = confirm(`Eliminar servicio ${item.name}?`);
+    const confirmed = confirm(`Delete service ${item.name}?`);
     if (!confirmed) {
       return;
     }
     this.servicesApi.remove(item._id).subscribe({
       next: () => this.load(),
       error: () => {
-        this.error = 'No se pudo eliminar el servicio';
+        this.error = 'Unable to delete service';
       },
     });
   }
@@ -295,11 +295,11 @@ export class ServicesComponent implements OnInit {
       return '-';
     }
     if (period === 'monthly') {
-      return 'Mensual';
+      return 'Monthly';
     }
     if (period === 'annual') {
-      return 'Anual';
+      return 'Annual';
     }
-    return 'Unico';
+    return 'One-time';
   }
 }

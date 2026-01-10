@@ -20,14 +20,14 @@ import { environment } from '../../../environments/environment';
     <div class="space-y-6">
       <div class="flex items-center justify-between">
         <div>
-          <div class="text-2xl font-semibold">Pagos</div>
-          <div class="text-sm text-slate-500">Registro y control de pagos</div>
+          <div class="text-2xl font-semibold">Payments</div>
+          <div class="text-sm text-slate-500">Payment tracking and control</div>
         </div>
         <button
           class="rounded bg-slate-900 px-3 py-2 text-xs uppercase tracking-wide text-white"
           (click)="openCreate()"
         >
-          Registrar pago
+          Record payment
         </button>
       </div>
 
@@ -36,7 +36,7 @@ import { environment } from '../../../environments/environment';
           [(ngModel)]="clientFilter"
           class="rounded-lg border border-slate-200 px-3 py-2 text-sm"
         >
-          <option value="">Todos los clientes</option>
+          <option value="">All clients</option>
           <option *ngFor="let client of clients" [value]="client._id">
             {{ client.name }}
           </option>
@@ -45,7 +45,7 @@ import { environment } from '../../../environments/environment';
           [(ngModel)]="contractFilter"
           class="rounded-lg border border-slate-200 px-3 py-2 text-sm"
         >
-          <option value="">Todos los contratos</option>
+          <option value="">All contracts</option>
           <option *ngFor="let contract of contracts" [value]="contract._id">
             {{ contract.title || contract._id }}
           </option>
@@ -64,27 +64,27 @@ import { environment } from '../../../environments/environment';
           class="rounded bg-slate-900 px-3 py-2 text-xs uppercase tracking-wide text-white"
           (click)="load()"
         >
-          Filtrar
+          Filter
         </button>
       </div>
 
       <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div *ngIf="isLoading" class="text-sm text-slate-500">Cargando pagos...</div>
+        <div *ngIf="isLoading" class="text-sm text-slate-500">Loading payments...</div>
         <div *ngIf="listError" class="text-sm text-red-600">{{ listError }}</div>
 
         <div class="grid gap-3 md:grid-cols-3">
           <div>
-            <div class="text-xs uppercase tracking-wide text-slate-400">Recibido</div>
+            <div class="text-xs uppercase tracking-wide text-slate-400">Received</div>
             <div class="text-lg font-semibold">{{ formatMoney(totalReceivedUsd, 'USD') }}</div>
             <div class="text-xs text-slate-500">{{ formatMoney(totalReceivedNio, 'NIO') }}</div>
           </div>
           <div>
-            <div class="text-xs uppercase tracking-wide text-slate-400">Retencion</div>
+            <div class="text-xs uppercase tracking-wide text-slate-400">Retention</div>
             <div class="text-lg font-semibold">{{ formatMoney(totalRetentionUsd, 'USD') }}</div>
             <div class="text-xs text-slate-500">{{ formatMoney(totalRetentionNio, 'NIO') }}</div>
           </div>
           <div>
-            <div class="text-xs uppercase tracking-wide text-slate-400">Aplicado</div>
+            <div class="text-xs uppercase tracking-wide text-slate-400">Applied</div>
             <div class="text-lg font-semibold">{{ formatMoney(totalAppliedUsd, 'USD') }}</div>
             <div class="text-xs text-slate-500">{{ formatMoney(totalAppliedNio, 'NIO') }}</div>
           </div>
@@ -93,16 +93,16 @@ import { environment } from '../../../environments/environment';
         <table *ngIf="!isLoading" class="mt-4 w-full text-sm">
           <thead class="text-left text-xs uppercase tracking-wide text-slate-400">
             <tr>
-              <th class="py-2">Cliente</th>
-              <th class="py-2">Contrato</th>
-              <th class="py-2">Fecha</th>
-              <th class="py-2">Monto</th>
-              <th class="py-2">Retencion</th>
-              <th class="py-2">Moneda</th>
-              <th class="py-2">TC</th>
-              <th class="py-2">Metodo</th>
-              <th class="py-2">Referencia</th>
-              <th class="py-2 text-right">Acciones</th>
+              <th class="py-2">Client</th>
+              <th class="py-2">Contract</th>
+              <th class="py-2">Date</th>
+              <th class="py-2">Amount</th>
+              <th class="py-2">Retention</th>
+              <th class="py-2">Currency</th>
+              <th class="py-2">FX</th>
+              <th class="py-2">Method</th>
+              <th class="py-2">Reference</th>
+              <th class="py-2 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -117,12 +117,12 @@ import { environment } from '../../../environments/environment';
               <td class="py-3">{{ methodLabel(item.method) }}</td>
               <td class="py-3">{{ item.reference || '-' }}</td>
               <td class="py-3 text-right">
-                <button class="text-xs text-slate-400" (click)="remove(item)">Eliminar</button>
+                <button class="text-xs text-slate-400" (click)="remove(item)">Delete</button>
               </td>
             </tr>
             <tr *ngIf="payments.length === 0 && !isLoading">
               <td colspan="10" class="py-6 text-center text-sm text-slate-500">
-                Sin pagos registrados
+                No payments found
               </td>
             </tr>
           </tbody>
@@ -136,45 +136,45 @@ import { environment } from '../../../environments/environment';
     >
       <div class="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl">
         <div class="flex items-center justify-between">
-          <div class="text-lg font-semibold">Registrar pago</div>
+          <div class="text-lg font-semibold">Record payment</div>
           <button class="text-slate-400" (click)="closeModal()">X</button>
         </div>
 
         <form class="mt-4 space-y-6" [formGroup]="form" (ngSubmit)="save()">
           <div class="grid gap-4 md:grid-cols-3">
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Cliente</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Client</label>
               <select
                 formControlName="clientId"
                 class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
                 (change)="onClientChange()"
               >
-                <option value="">Seleccionar cliente</option>
+                <option value="">Select client</option>
                 <option *ngFor="let client of clients" [value]="client._id">
                   {{ client.name }}
                 </option>
               </select>
             </div>
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Contrato</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Contract</label>
               <select
                 formControlName="contractId"
                 class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
                 (change)="onContractChange()"
               >
-                <option value="">Seleccionar contrato</option>
+                <option value="">Select contract</option>
                 <option *ngFor="let contract of filteredContracts" [value]="contract._id">
                   {{ contract.title || contract._id }}
                 </option>
               </select>
             </div>
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Cuenta destino</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Destination account</label>
               <select
                 formControlName="accountId"
                 class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
               >
-                <option value="">Seleccionar cuenta</option>
+                <option value="">Select account</option>
                 <option *ngFor="let account of accounts" [value]="account._id">
                   {{ account.name }} ({{ account.currency }})
                 </option>
@@ -183,16 +183,16 @@ import { environment } from '../../../environments/environment';
           </div>
 
           <div *ngIf="selectedContract" class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-            <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Resumen del contrato</div>
+            <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Contract summary</div>
             <div class="mt-2 grid gap-3 text-sm md:grid-cols-5">
               <div>
-                <div class="text-xs uppercase tracking-wide text-slate-400">Monto</div>
+                <div class="text-xs uppercase tracking-wide text-slate-400">Amount</div>
                 <div class="font-semibold text-slate-900">
                   {{ formatMoney(selectedContract.amount, selectedContract.currency) }}
                 </div>
               </div>
               <div>
-                <div class="text-xs uppercase tracking-wide text-slate-400">Pagado</div>
+                <div class="text-xs uppercase tracking-wide text-slate-400">Paid</div>
                 <div class="font-semibold text-slate-900">
                   {{ formatMoney(selectedContract.paidTotal || 0, selectedContract.currency) }}
                 </div>
@@ -204,16 +204,16 @@ import { environment } from '../../../environments/environment';
                 </div>
               </div>
               <div>
-                <div class="text-xs uppercase tracking-wide text-slate-400">Vence</div>
+                <div class="text-xs uppercase tracking-wide text-slate-400">Due</div>
                 <div class="font-semibold text-slate-900">
                   {{ formatDate(selectedContract.endDate) }}
                 </div>
               </div>
               <div>
-                <div class="text-xs uppercase tracking-wide text-slate-400">Periodo</div>
+                <div class="text-xs uppercase tracking-wide text-slate-400">Period</div>
                 <div class="font-semibold text-slate-900">
-                  {{ selectedContract.billingPeriod === 'monthly' ? 'Mensual' :
-                     selectedContract.billingPeriod === 'annual' ? 'Anual' : 'Unico' }}
+                  {{ selectedContract.billingPeriod === 'monthly' ? 'Monthly' :
+                     selectedContract.billingPeriod === 'annual' ? 'Annual' : 'One-time' }}
                 </div>
               </div>
             </div>
@@ -221,7 +221,7 @@ import { environment } from '../../../environments/environment';
 
           <div class="grid gap-4 md:grid-cols-3">
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Monto recibido</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Amount received</label>
               <input
                 formControlName="amount"
                 type="number"
@@ -229,7 +229,7 @@ import { environment } from '../../../environments/environment';
               />
             </div>
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Retencion</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Retention</label>
               <input
                 formControlName="retentionAmount"
                 type="number"
@@ -237,7 +237,7 @@ import { environment } from '../../../environments/environment';
               />
             </div>
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Tipo de cambio</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Exchange rate</label>
               <input
                 formControlName="exchangeRate"
                 type="number"
@@ -250,7 +250,7 @@ import { environment } from '../../../environments/environment';
 
           <div class="grid gap-4 md:grid-cols-3">
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Moneda</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Currency</label>
               <select
                 formControlName="currency"
                 class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
@@ -261,7 +261,7 @@ import { environment } from '../../../environments/environment';
               </select>
             </div>
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Fecha de pago</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Payment date</label>
               <input
                 formControlName="paymentDate"
                 type="date"
@@ -269,30 +269,30 @@ import { environment } from '../../../environments/environment';
               />
             </div>
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Metodo</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Method</label>
               <select
                 formControlName="method"
                 class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
               >
-                <option value="cash">Efectivo</option>
-                <option value="bank">Banco</option>
-                <option value="card">Tarjeta</option>
-                <option value="transfer">Transferencia</option>
-                <option value="other">Otro</option>
+                <option value="cash">Cash</option>
+                <option value="bank">Bank</option>
+                <option value="card">Card</option>
+                <option value="transfer">Transfer</option>
+                <option value="other">Other</option>
               </select>
             </div>
           </div>
 
           <div class="grid gap-4 md:grid-cols-2">
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Referencia</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Reference</label>
               <input
                 formControlName="reference"
                 class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
               />
             </div>
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Notas</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Notes</label>
               <textarea
                 formControlName="notes"
                 rows="2"
@@ -306,14 +306,14 @@ import { environment } from '../../../environments/environment';
 
           <div class="flex justify-end gap-3">
             <button type="button" class="text-sm text-slate-500" (click)="closeModal()">
-              Cancelar
+              Cancel
             </button>
             <button
               type="submit"
               class="rounded bg-slate-900 px-4 py-2 text-xs uppercase tracking-wide text-white"
               [disabled]="form.invalid || isSaving"
             >
-              {{ isSaving ? 'Guardando...' : 'Guardar' }}
+              {{ isSaving ? 'Saving...' : 'Save' }}
             </button>
           </div>
         </form>
@@ -427,7 +427,7 @@ export class PaymentsComponent implements OnInit {
           this.isLoading = false;
         },
         error: () => {
-          this.listError = 'No se pudo cargar el listado';
+      this.listError = 'Unable to load list';
           this.isLoading = false;
         },
       });
@@ -500,7 +500,7 @@ export class PaymentsComponent implements OnInit {
     const exchangeRate = Number(this.form.value.exchangeRate || this.fxRate);
     if (!Number.isFinite(exchangeRate) || exchangeRate <= 0) {
       this.isSaving = false;
-      this.validationError = 'Tipo de cambio invalido';
+      this.validationError = 'Invalid exchange rate';
       return;
     }
 
@@ -533,20 +533,20 @@ export class PaymentsComponent implements OnInit {
       error: (err) => {
         console.error('Payments save error', err);
         this.isSaving = false;
-        this.modalError = this.getErrorMessage(err) ?? 'No se pudo guardar el pago';
+        this.modalError = this.getErrorMessage(err) ?? 'Unable to save payment';
       },
     });
   }
 
   remove(item: PaymentItem) {
-    const confirmed = confirm('Eliminar pago?');
+    const confirmed = confirm('Delete payment?');
     if (!confirmed) {
       return;
     }
     this.paymentsApi.remove(item._id).subscribe({
       next: () => this.load(),
       error: () => {
-        this.listError = 'No se pudo eliminar el pago';
+        this.listError = 'Unable to delete payment';
       },
     });
   }
@@ -571,25 +571,25 @@ export class PaymentsComponent implements OnInit {
 
   methodLabel(method: PaymentItem['method']) {
     if (method === 'cash') {
-      return 'Efectivo';
+      return 'Cash';
     }
     if (method === 'bank') {
-      return 'Banco';
+      return 'Bank';
     }
     if (method === 'card') {
-      return 'Tarjeta';
+      return 'Card';
     }
     if (method === 'transfer') {
-      return 'Transferencia';
+      return 'Transfer';
     }
-    return 'Otro';
+    return 'Other';
   }
 
   formatDate(date?: string) {
     if (!date) {
       return '-';
     }
-    return new Date(date).toLocaleDateString('es-ES');
+    return new Date(date).toLocaleDateString('en-US');
   }
 
   formatMoney(amount: number, currency: 'USD' | 'NIO' = 'USD') {
