@@ -455,6 +455,8 @@ export class TransactionsComponent implements OnInit {
     this.isModalOpen = false;
   }
 
+
+  
   openTransfer() {
     this.transferError = '';
     this.transferForm.reset({
