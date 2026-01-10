@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ServicesApiService } from '../../core/services/services-api.service';
+import { ConfirmService } from '../../core/services/confirm.service';
 import { ServiceItem } from '../../core/models/service.model';
 
 @Component({
@@ -158,6 +159,7 @@ export class ServicesComponent implements OnInit {
   constructor(
     private readonly fb: FormBuilder,
     private readonly servicesApi: ServicesApiService,
+    private readonly confirm: ConfirmService,
   ) {
     this.form = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
@@ -217,9 +219,20 @@ export class ServicesComponent implements OnInit {
     this.isModalOpen = false;
   }
 
-  save() {
+  async save() {
     if (this.form.invalid) {
       return;
+    }
+    if (this.form.dirty) {
+      const confirmed = await this.confirm.open({
+        title: this.editing ? 'Confirm update' : 'Confirm create',
+        message: this.editing
+          ? 'Save changes to this service?'
+          : 'Create this service with the current details?',
+      });
+      if (!confirmed) {
+        return;
+      }
     }
 
     this.isSaving = true;
@@ -269,16 +282,34 @@ export class ServicesComponent implements OnInit {
   }
 
   toggleStatus(item: ServiceItem) {
-    this.servicesApi.update(item._id, { isActive: !item.isActive }).subscribe({
-      next: () => this.load(),
-      error: () => {
-        this.error = 'Unable to update status';
-      },
-    });
+    this.confirm
+      .open({
+        title: item.isActive ? 'Confirm deactivation' : 'Confirm activation',
+        message: item.isActive
+          ? `Deactivate service ${item.name}?`
+          : `Activate service ${item.name}?`,
+        confirmText: item.isActive ? 'Deactivate' : 'Activate',
+      })
+      .then((confirmed) => {
+        if (!confirmed) {
+          return;
+        }
+        this.servicesApi.update(item._id, { isActive: !item.isActive }).subscribe({
+          next: () => this.load(),
+          error: () => {
+            this.error = 'Unable to update status';
+          },
+        });
+      });
   }
 
-  remove(item: ServiceItem) {
-    const confirmed = confirm(`Delete service ${item.name}?`);
+  async remove(item: ServiceItem) {
+    const confirmed = await this.confirm.open({
+      title: 'Confirm delete',
+      message: `Delete service ${item.name}? This cannot be undone.`,
+      confirmText: 'Delete',
+      danger: true,
+    });
     if (!confirmed) {
       return;
     }

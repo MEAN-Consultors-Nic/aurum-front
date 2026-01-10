@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ContractsApiService } from '../../core/services/contracts-api.service';
+import { ConfirmService } from '../../core/services/confirm.service';
 import { ClientsApiService } from '../../core/services/clients-api.service';
 import { ServicesApiService } from '../../core/services/services-api.service';
 import { ContractItem } from '../../core/models/contract.model';
@@ -305,6 +306,7 @@ export class ContractsComponent implements OnInit {
     private readonly contractsApi: ContractsApiService,
     private readonly clientsApi: ClientsApiService,
     private readonly servicesApi: ServicesApiService,
+    private readonly confirm: ConfirmService,
   ) {
     this.form = this.fb.group({
       clientId: ['', [Validators.required]],
@@ -402,7 +404,7 @@ export class ContractsComponent implements OnInit {
     this.isModalOpen = false;
   }
 
-  save() {
+  async save() {
     if (this.form.invalid) {
       return;
     }
@@ -412,6 +414,18 @@ export class ContractsComponent implements OnInit {
     if (billingPeriod !== 'one_time' && !endDate) {
       this.validationError = 'End date is required for recurring contracts';
       return;
+    }
+
+    if (this.form.dirty) {
+      const confirmed = await this.confirm.open({
+        title: this.editing ? 'Confirm update' : 'Confirm create',
+        message: this.editing
+          ? 'Save changes to this contract?'
+          : 'Create this contract with the current details?',
+      });
+      if (!confirmed) {
+        return;
+      }
     }
 
     this.isSaving = true;
@@ -457,8 +471,17 @@ export class ContractsComponent implements OnInit {
     });
   }
 
-  cancel(item: ContractItem) {
+  async cancel(item: ContractItem) {
     if (item.status === 'cancelled') {
+      return;
+    }
+    const confirmed = await this.confirm.open({
+      title: 'Confirm cancel',
+      message: `Cancel contract ${item.title || item._id}?`,
+      confirmText: 'Cancel contract',
+      danger: true,
+    });
+    if (!confirmed) {
       return;
     }
     this.contractsApi.cancel(item._id).subscribe({
@@ -469,8 +492,13 @@ export class ContractsComponent implements OnInit {
     });
   }
 
-  remove(item: ContractItem) {
-    const confirmed = confirm(`Delete contract ${item.title || item._id}?`);
+  async remove(item: ContractItem) {
+    const confirmed = await this.confirm.open({
+      title: 'Confirm delete',
+      message: `Delete contract ${item.title || item._id}? This cannot be undone.`,
+      confirmText: 'Delete',
+      danger: true,
+    });
     if (!confirmed) {
       return;
     }

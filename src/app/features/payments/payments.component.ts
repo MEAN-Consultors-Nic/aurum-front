@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PaymentsApiService } from '../../core/services/payments-api.service';
+import { ConfirmService } from '../../core/services/confirm.service';
 import { ClientsApiService } from '../../core/services/clients-api.service';
 import { AccountsApiService } from '../../core/services/accounts-api.service';
 import { ContractsApiService } from '../../core/services/contracts-api.service';
@@ -365,6 +366,7 @@ export class PaymentsComponent implements OnInit {
     private readonly contractsApi: ContractsApiService,
     private readonly accountsApi: AccountsApiService,
     private readonly settingsApi: SettingsApiService,
+    private readonly confirm: ConfirmService,
   ) {
     this.form = this.fb.group({
       clientId: ['', [Validators.required]],
@@ -528,9 +530,19 @@ export class PaymentsComponent implements OnInit {
     }
   }
 
-  save() {
+  async save() {
     if (this.form.invalid) {
       return;
+    }
+    if (this.form.dirty) {
+      const confirmed = await this.confirm.open({
+        title: 'Confirm payment',
+        message: 'Record this payment with the current details?',
+        confirmText: 'Record payment',
+      });
+      if (!confirmed) {
+        return;
+      }
     }
 
     this.isSaving = true;
@@ -574,8 +586,13 @@ export class PaymentsComponent implements OnInit {
     });
   }
 
-  remove(item: PaymentItem) {
-    const confirmed = confirm('Delete payment?');
+  async remove(item: PaymentItem) {
+    const confirmed = await this.confirm.open({
+      title: 'Confirm delete',
+      message: 'Delete this payment? This cannot be undone.',
+      confirmText: 'Delete',
+      danger: true,
+    });
     if (!confirmed) {
       return;
     }

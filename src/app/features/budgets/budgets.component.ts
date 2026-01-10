@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BudgetsApiService } from '../../core/services/budgets-api.service';
+import { ConfirmService } from '../../core/services/confirm.service';
 import { CategoriesApiService } from '../../core/services/categories-api.service';
 import { BudgetItem } from '../../core/models/budget.model';
 import { CategoryItem } from '../../core/models/category.model';
@@ -178,6 +179,7 @@ export class BudgetsComponent implements OnInit {
     private readonly fb: FormBuilder,
     private readonly budgetsApi: BudgetsApiService,
     private readonly categoriesApi: CategoriesApiService,
+    private readonly confirm: ConfirmService,
   ) {
     this.form = this.fb.group({
       categoryId: ['', [Validators.required]],
@@ -242,9 +244,20 @@ export class BudgetsComponent implements OnInit {
     this.isModalOpen = false;
   }
 
-  save() {
+  async save() {
     if (this.form.invalid) {
       return;
+    }
+    if (this.form.dirty) {
+      const confirmed = await this.confirm.open({
+        title: this.editing ? 'Confirm update' : 'Confirm create',
+        message: this.editing
+          ? 'Save changes to this budget?'
+          : 'Create this budget with the current details?',
+      });
+      if (!confirmed) {
+        return;
+      }
     }
     this.isSaving = true;
     const payload = {
@@ -283,7 +296,16 @@ export class BudgetsComponent implements OnInit {
     });
   }
 
-  remove(item: BudgetItem) {
+  async remove(item: BudgetItem) {
+    const confirmed = await this.confirm.open({
+      title: 'Confirm delete',
+      message: `Delete budget for ${this.getCategoryName(item)}? This cannot be undone.`,
+      confirmText: 'Delete',
+      danger: true,
+    });
+    if (!confirmed) {
+      return;
+    }
     this.budgetsApi.remove(item._id).subscribe({
       next: () => this.load(),
       error: () => {
@@ -301,6 +323,10 @@ export class BudgetsComponent implements OnInit {
 
   resolveCategoryId(category: BudgetItem['categoryId']) {
     return typeof category === 'string' ? category : category?._id;
+  }
+
+  getCategoryName(item: BudgetItem) {
+    return this.resolveCategoryName(item.categoryId);
   }
 
   formatMoney(amount: number, currency: 'USD' | 'NIO') {

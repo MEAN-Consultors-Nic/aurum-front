@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CategoriesApiService } from '../../core/services/categories-api.service';
+import { ConfirmService } from '../../core/services/confirm.service';
 import { CategoryItem } from '../../core/models/category.model';
 
 @Component({
@@ -135,7 +136,11 @@ export class CategoriesComponent implements OnInit {
   editing: CategoryItem | null = null;
   form: FormGroup;
 
-  constructor(private readonly fb: FormBuilder, private readonly categoriesApi: CategoriesApiService) {
+  constructor(
+    private readonly fb: FormBuilder,
+    private readonly categoriesApi: CategoriesApiService,
+    private readonly confirm: ConfirmService,
+  ) {
     this.form = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
       type: ['expense', [Validators.required]],
@@ -183,9 +188,20 @@ export class CategoriesComponent implements OnInit {
     this.isModalOpen = false;
   }
 
-  save() {
+  async save() {
     if (this.form.invalid) {
       return;
+    }
+    if (this.form.dirty) {
+      const confirmed = await this.confirm.open({
+        title: this.editing ? 'Confirm update' : 'Confirm create',
+        message: this.editing
+          ? 'Save changes to this category?'
+          : 'Create this category with the current details?',
+      });
+      if (!confirmed) {
+        return;
+      }
     }
 
     this.isSaving = true;
@@ -223,7 +239,16 @@ export class CategoriesComponent implements OnInit {
     });
   }
 
-  remove(item: CategoryItem) {
+  async remove(item: CategoryItem) {
+    const confirmed = await this.confirm.open({
+      title: 'Confirm delete',
+      message: `Delete category ${item.name}? This cannot be undone.`,
+      confirmText: 'Delete',
+      danger: true,
+    });
+    if (!confirmed) {
+      return;
+    }
     this.categoriesApi.remove(item._id).subscribe({
       next: () => this.load(),
       error: () => {

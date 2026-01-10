@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../core/services/auth.service';
 import { NotificationsApiService } from '../core/services/notifications-api.service';
+import { ConfirmDialogComponent } from '../shared/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ConfirmDialogComponent],
   template: `
     <div class="min-h-screen bg-slate-50 text-slate-900">
       <div class="flex">
@@ -87,6 +88,7 @@ import { NotificationsApiService } from '../core/services/notifications-api.serv
           </section>
         </main>
       </div>
+      <app-confirm-dialog />
     </div>
   `,
 })

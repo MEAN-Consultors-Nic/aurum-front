@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } 
 import { AccountsApiService } from '../../core/services/accounts-api.service';
 import { CategoriesApiService } from '../../core/services/categories-api.service';
 import { TransactionsApiService } from '../../core/services/transactions-api.service';
+import { ConfirmService } from '../../core/services/confirm.service';
 import { AccountItem } from '../../core/models/account.model';
 import { CategoryItem } from '../../core/models/category.model';
 import { TransactionItem } from '../../core/models/transaction.model';
@@ -368,6 +369,7 @@ export class TransactionsComponent implements OnInit {
     private readonly accountsApi: AccountsApiService,
     private readonly categoriesApi: CategoriesApiService,
     private readonly transactionsApi: TransactionsApiService,
+    private readonly confirm: ConfirmService,
   ) {
     this.form = this.fb.group({
       type: ['expense', [Validators.required]],
@@ -490,9 +492,19 @@ export class TransactionsComponent implements OnInit {
     }
   }
 
-  save() {
+  async save() {
     if (this.form.invalid) {
       return;
+    }
+    if (this.form.dirty) {
+      const confirmed = await this.confirm.open({
+        title: 'Confirm transaction',
+        message: 'Save this transaction with the current details?',
+        confirmText: 'Save transaction',
+      });
+      if (!confirmed) {
+        return;
+      }
     }
     this.isSaving = true;
     const payload = {
@@ -520,9 +532,19 @@ export class TransactionsComponent implements OnInit {
     });
   }
 
-  saveTransfer() {
+  async saveTransfer() {
     if (this.transferForm.invalid) {
       return;
+    }
+    if (this.transferForm.dirty) {
+      const confirmed = await this.confirm.open({
+        title: 'Confirm transfer',
+        message: 'Transfer between these accounts with the current details?',
+        confirmText: 'Transfer',
+      });
+      if (!confirmed) {
+        return;
+      }
     }
     this.isSavingTransfer = true;
     const payload = {
