@@ -47,13 +47,13 @@ export class PaymentsApiService {
   create(payload: {
     contractId: string;
     clientId: string;
-    accountId: string;
+    accountId?: string;
     amount: number;
     retentionAmount?: number;
     currency: 'USD' | 'NIO';
     exchangeRate: number;
     paymentDate: string;
-    method: 'cash' | 'bank' | 'card' | 'transfer' | 'other';
+    method: 'cash' | 'bank' | 'paypal' | 'card' | 'transfer' | 'other';
     reference?: string;
     notes?: string;
   }) {

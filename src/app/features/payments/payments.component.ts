@@ -169,16 +169,45 @@ import { environment } from '../../../environments/environment';
               </select>
             </div>
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Destination account</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Method</label>
+              <select
+                formControlName="method"
+                class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                (change)="onMethodChange()"
+              >
+                <option value="cash">Cash</option>
+                <option value="bank">Bank</option>
+                <option value="paypal">PayPal</option>
+              </select>
+              <div *ngIf="!requiresAccount && !form.value.accountId" class="mt-1 text-xs text-rose-600">
+                No account configured for this method.
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="requiresAccount || requiresReference" class="grid gap-4 md:grid-cols-2">
+            <div *ngIf="requiresAccount">
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Bank account</label>
               <select
                 formControlName="accountId"
                 class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
               >
                 <option value="">Select account</option>
-                <option *ngFor="let account of accounts" [value]="account._id">
+                <option *ngFor="let account of filteredBankAccounts" [value]="account._id">
                   {{ account.name }} ({{ account.currency }})
                 </option>
               </select>
+              <div *ngIf="filteredBankAccounts.length === 0" class="mt-1 text-xs text-rose-600">
+                No bank accounts available.
+              </div>
+            </div>
+            <div *ngIf="requiresReference" [class.md:col-span-2]="!requiresAccount">
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Reference</label>
+              <input
+                formControlName="reference"
+                class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                placeholder="Transfer reference"
+              />
             </div>
           </div>
 
@@ -254,6 +283,7 @@ import { environment } from '../../../environments/environment';
               <select
                 formControlName="currency"
                 class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                (change)="onCurrencyChange()"
               >
                 <option *ngFor="let currency of currencies" [value]="currency">
                   {{ currency }}
@@ -268,37 +298,15 @@ import { environment } from '../../../environments/environment';
                 class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
               />
             </div>
-            <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Method</label>
-              <select
-                formControlName="method"
-                class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              >
-                <option value="cash">Cash</option>
-                <option value="bank">Bank</option>
-                <option value="card">Card</option>
-                <option value="transfer">Transfer</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
           </div>
 
-          <div class="grid gap-4 md:grid-cols-2">
-            <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Reference</label>
-              <input
-                formControlName="reference"
-                class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              />
-            </div>
-            <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Notes</label>
-              <textarea
-                formControlName="notes"
-                rows="2"
-                class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              ></textarea>
-            </div>
+          <div>
+            <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">Notes</label>
+            <textarea
+              formControlName="notes"
+              rows="2"
+              class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            ></textarea>
           </div>
 
           <div *ngIf="validationError" class="text-sm text-red-600">{{ validationError }}</div>
@@ -361,7 +369,7 @@ export class PaymentsComponent implements OnInit {
     this.form = this.fb.group({
       clientId: ['', [Validators.required]],
       contractId: ['', [Validators.required]],
-      accountId: ['', [Validators.required]],
+      accountId: [''],
       amount: [0, [Validators.required, Validators.min(0.01)]],
       retentionAmount: [0, [Validators.min(0)]],
       currency: ['USD', [Validators.required]],
@@ -451,6 +459,7 @@ export class PaymentsComponent implements OnInit {
     });
     this.selectedContract = null;
     this.filteredContracts = this.contracts;
+    this.onMethodChange();
     this.isModalOpen = true;
   }
 
@@ -487,6 +496,38 @@ export class PaymentsComponent implements OnInit {
     }
   }
 
+  onMethodChange() {
+    const method = this.selectedMethod;
+    const accountControl = this.form.get('accountId');
+    const referenceControl = this.form.get('reference');
+    if (this.requiresAccount) {
+      accountControl?.setValidators([Validators.required]);
+      const bankAccountIds = this.filteredBankAccounts.map((account) => account._id);
+      if (!bankAccountIds.includes(this.form.value.accountId)) {
+        this.form.patchValue({ accountId: '' });
+      }
+    } else {
+      accountControl?.clearValidators();
+      const defaultAccountId = this.findDefaultAccountId(method);
+      this.form.patchValue({ accountId: defaultAccountId });
+    }
+    if (this.requiresReference) {
+      referenceControl?.setValidators([Validators.required]);
+    } else {
+      referenceControl?.clearValidators();
+      this.form.patchValue({ reference: '' });
+    }
+    accountControl?.updateValueAndValidity();
+    referenceControl?.updateValueAndValidity();
+  }
+
+  onCurrencyChange() {
+    if (!this.requiresAccount) {
+      const defaultAccountId = this.findDefaultAccountId(this.selectedMethod);
+      this.form.patchValue({ accountId: defaultAccountId });
+    }
+  }
+
   save() {
     if (this.form.invalid) {
       return;
@@ -513,13 +554,8 @@ export class PaymentsComponent implements OnInit {
       currency,
       exchangeRate,
       paymentDate: this.form.value.paymentDate ?? '',
-      method: (this.form.value.method || 'cash') as
-        | 'cash'
-        | 'bank'
-        | 'card'
-        | 'transfer'
-        | 'other',
-      reference: this.form.value.reference || undefined,
+      method: (this.form.value.method || 'cash') as 'cash' | 'bank' | 'paypal',
+      reference: this.requiresReference ? this.form.value.reference || undefined : undefined,
       notes: this.form.value.notes || undefined,
     };
 
@@ -576,6 +612,9 @@ export class PaymentsComponent implements OnInit {
     if (method === 'bank') {
       return 'Bank';
     }
+    if (method === 'paypal') {
+      return 'PayPal';
+    }
     if (method === 'card') {
       return 'Card';
     }
@@ -595,6 +634,35 @@ export class PaymentsComponent implements OnInit {
   formatMoney(amount: number, currency: 'USD' | 'NIO' = 'USD') {
     const value = Number(amount ?? 0).toFixed(2);
     return `${currency} ${value}`;
+  }
+
+  get selectedMethod() {
+    return (this.form.value.method || 'cash') as 'cash' | 'bank' | 'paypal';
+  }
+
+  get requiresAccount() {
+    return this.selectedMethod === 'bank';
+  }
+
+  get requiresReference() {
+    return this.selectedMethod === 'bank' || this.selectedMethod === 'paypal';
+  }
+
+  get filteredBankAccounts() {
+    return this.accounts.filter((account) => account.type === 'bank');
+  }
+
+  private findDefaultAccountId(method: 'cash' | 'bank' | 'paypal') {
+    const currency = (this.form.value.currency || 'USD') as 'USD' | 'NIO';
+    const type = method === 'paypal' ? 'paypal' : 'cash';
+    const byTypeCurrency = this.accounts.filter(
+      (account) => account.type === type && account.currency === currency,
+    );
+    if (byTypeCurrency.length > 0) {
+      return byTypeCurrency[0]._id;
+    }
+    const byType = this.accounts.filter((account) => account.type === type);
+    return byType[0]?._id ?? '';
   }
 
   private computeTotals() {

@@ -14,7 +14,7 @@ export type PaymentItem = {
   currency: 'USD' | 'NIO';
   exchangeRate: number;
   paymentDate: string;
-  method: 'cash' | 'bank' | 'card' | 'transfer' | 'other';
+  method: 'cash' | 'bank' | 'paypal' | 'card' | 'transfer' | 'other';
   reference?: string;
   notes?: string;
   createdAt?: string;

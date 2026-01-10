@@ -87,6 +87,7 @@ import { ServiceItem } from '../../core/models/service.model';
               <th class="py-2">Paid</th>
               <th class="py-2">Balance</th>
               <th class="py-2">Due</th>
+              <th class="py-2">Payment</th>
               <th class="py-2">Status</th>
               <th class="py-2 text-right">Actions</th>
             </tr>
@@ -103,6 +104,14 @@ import { ServiceItem } from '../../core/models/service.model';
               <td class="py-3">{{ formatMoney(item.paidTotal || 0, resolveCurrency(item.currency)) }}</td>
               <td class="py-3">{{ formatMoney(item.balance || 0, resolveCurrency(item.currency)) }}</td>
               <td class="py-3">{{ formatDate(item.endDate) }}</td>
+              <td class="py-3">
+                <span
+                  class="rounded-full px-2 py-1 text-xs"
+                  [ngClass]="financialStatusClass(resolveFinancialStatus(item))"
+                >
+                  {{ formatFinancialStatus(resolveFinancialStatus(item)) }}
+                </span>
+              </td>
               <td class="py-3">
                 <span class="rounded-full px-2 py-1 text-xs" [ngClass]="statusClass(item.status)">
                   {{ formatStatus(item.status) }}
@@ -121,7 +130,7 @@ import { ServiceItem } from '../../core/models/service.model';
               </td>
             </tr>
             <tr *ngIf="contracts.length === 0 && !isLoading">
-              <td colspan="9" class="py-6 text-center text-sm text-slate-500">
+              <td colspan="10" class="py-6 text-center text-sm text-slate-500">
                 No contracts found
               </td>
             </tr>
@@ -513,6 +522,40 @@ export class ContractsComponent implements OnInit {
       return 'Expired';
     }
     return 'Cancelled';
+  }
+
+  resolveFinancialStatus(item: ContractItem) {
+    if (item.financialStatus) {
+      return item.financialStatus;
+    }
+    const balance = (item.balance ?? (item.amount - (item.paidTotal ?? 0)));
+    if (balance <= 0) {
+      return 'paid';
+    }
+    if ((item.paidTotal ?? 0) > 0) {
+      return 'partial';
+    }
+    return 'unpaid';
+  }
+
+  formatFinancialStatus(status: 'paid' | 'partial' | 'unpaid') {
+    if (status === 'paid') {
+      return 'Paid';
+    }
+    if (status === 'partial') {
+      return 'Partial';
+    }
+    return 'Unpaid';
+  }
+
+  financialStatusClass(status: 'paid' | 'partial' | 'unpaid') {
+    if (status === 'paid') {
+      return 'bg-emerald-100 text-emerald-700';
+    }
+    if (status === 'partial') {
+      return 'bg-amber-100 text-amber-700';
+    }
+    return 'bg-rose-100 text-rose-700';
   }
 
   statusClass(status: 'active' | 'expired' | 'cancelled') {
