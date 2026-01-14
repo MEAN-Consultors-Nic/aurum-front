@@ -13,6 +13,8 @@ export type TransactionItem = {
   notes?: string;
   linkedClientId?: string | { _id: string; name: string };
   linkedContractId?: string | { _id: string; title?: string };
+  voidedAt?: string;
+  voidedBy?: string;
   createdAt?: string;
   updatedAt?: string;
 };

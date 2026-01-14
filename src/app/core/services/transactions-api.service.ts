@@ -15,6 +15,8 @@ export class TransactionsApiService {
     contractId?: string;
     from?: string;
     to?: string;
+    sortField?: 'date' | 'amount' | 'type' | 'accountId' | 'categoryId' | 'notes';
+    sortDirection?: 'asc' | 'desc';
   }) {
     let httpParams = new HttpParams();
     if (params?.accountId) {
@@ -37,6 +39,12 @@ export class TransactionsApiService {
     }
     if (params?.to) {
       httpParams = httpParams.set('to', params.to);
+    }
+    if (params?.sortField) {
+      httpParams = httpParams.set('sortField', params.sortField);
+    }
+    if (params?.sortDirection) {
+      httpParams = httpParams.set('sortDirection', params.sortDirection);
     }
     return this.http.get<TransactionItem[]>(`${environment.apiUrl}/transactions`, { params: httpParams });
   }
@@ -72,5 +80,9 @@ export class TransactionsApiService {
       `${environment.apiUrl}/transactions/transfer`,
       payload,
     );
+  }
+
+  void(id: string) {
+    return this.http.patch<{ success: boolean }>(`${environment.apiUrl}/transactions/${id}/void`, {});
   }
 }

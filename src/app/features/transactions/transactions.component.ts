@@ -36,7 +36,7 @@ import { TransactionItem } from '../../core/models/transaction.model';
         </div>
       </div>
 
-      <div class="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm lg:grid-cols-4">
+      <div class="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm lg:grid-cols-6">
         <select [(ngModel)]="accountFilter" class="rounded-lg border border-slate-200 px-3 py-2 text-sm">
           <option value="">All accounts</option>
           <option *ngFor="let account of accounts" [value]="account._id">
@@ -60,8 +60,20 @@ import { TransactionItem } from '../../core/models/transaction.model';
           [(ngModel)]="to"
           class="rounded-lg border border-slate-200 px-3 py-2 text-sm"
         />
+        <select [(ngModel)]="sortField" class="rounded-lg border border-slate-200 px-3 py-2 text-sm">
+          <option value="date">Sort by date</option>
+          <option value="amount">Sort by amount</option>
+          <option value="accountId">Sort by account</option>
+          <option value="type">Sort by type</option>
+          <option value="categoryId">Sort by category</option>
+          <option value="notes">Sort by notes</option>
+        </select>
+        <select [(ngModel)]="sortDirection" class="rounded-lg border border-slate-200 px-3 py-2 text-sm">
+          <option value="desc">Newest / highest</option>
+          <option value="asc">Oldest / lowest</option>
+        </select>
         <button
-          class="rounded bg-slate-900 px-3 py-2 text-xs uppercase tracking-wide text-white lg:col-span-4"
+          class="rounded bg-slate-900 px-3 py-2 text-xs uppercase tracking-wide text-white lg:col-span-6"
           (click)="load()"
         >
           Filter
@@ -81,6 +93,7 @@ import { TransactionItem } from '../../core/models/transaction.model';
               <th class="py-2">Category</th>
               <th class="py-2">Amount</th>
               <th class="py-2">Notes</th>
+              <th class="py-2 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -91,9 +104,18 @@ import { TransactionItem } from '../../core/models/transaction.model';
               <td class="py-3">{{ resolveCategoryName(item.categoryId) }}</td>
               <td class="py-3">{{ formatMoney(item.amount, item.currency) }}</td>
               <td class="py-3">{{ item.notes || '-' }}</td>
+              <td class="py-3 text-right">
+                <button
+                  class="rounded border border-red-200 px-2 py-1 text-xs uppercase tracking-wide text-red-600"
+                  [disabled]="voidingIds.has(item._id)"
+                  (click)="voidTransaction(item)"
+                >
+                  {{ voidingIds.has(item._id) ? 'Voiding...' : 'Anular' }}
+                </button>
+              </td>
             </tr>
             <tr *ngIf="transactions.length === 0 && !isLoading">
-              <td colspan="6" class="py-6 text-center text-sm text-slate-500">
+              <td colspan="7" class="py-6 text-center text-sm text-slate-500">
                 No transactions found
               </td>
             </tr>
@@ -355,11 +377,14 @@ export class TransactionsComponent implements OnInit {
   error = '';
   modalError = '';
   transferError = '';
+  voidingIds = new Set<string>();
 
   accountFilter = '';
   typeFilter = '';
   from = '';
   to = '';
+  sortField: 'date' | 'amount' | 'accountId' | 'type' | 'categoryId' | 'notes' = 'date';
+  sortDirection: 'asc' | 'desc' = 'desc';
 
   form: FormGroup;
   transferForm: FormGroup;
@@ -421,6 +446,8 @@ export class TransactionsComponent implements OnInit {
         type: this.typeFilter || undefined,
         from: this.from || undefined,
         to: this.to || undefined,
+        sortField: this.sortField,
+        sortDirection: this.sortDirection,
       })
       .subscribe({
         next: (items) => {
@@ -621,5 +648,29 @@ export class TransactionsComponent implements OnInit {
       return item.flow === 'in' ? 'Adjustment +' : 'Adjustment -';
     }
     return 'Transfer';
+  }
+
+  async voidTransaction(item: TransactionItem) {
+    const confirmed = await this.confirm.open({
+      title: 'Confirm void',
+      message: 'Void this transaction and recalculate balances?',
+      confirmText: 'Void transaction',
+      danger: true,
+    });
+    if (!confirmed) {
+      return;
+    }
+
+    this.voidingIds.add(item._id);
+    this.transactionsApi.void(item._id).subscribe({
+      next: () => {
+        this.voidingIds.delete(item._id);
+        this.load();
+      },
+      error: () => {
+        this.voidingIds.delete(item._id);
+        this.error = 'Unable to void transaction';
+      },
+    });
   }
 }
