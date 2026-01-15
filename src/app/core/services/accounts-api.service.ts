@@ -36,4 +36,8 @@ export class AccountsApiService {
   remove(id: string) {
     return this.http.delete<AccountItem>(`${environment.apiUrl}/accounts/${id}`);
   }
+
+  resetBalance(id: string, payload: { currentBalance: number; note?: string }) {
+    return this.http.post(`${environment.apiUrl}/accounts/${id}/reset`, payload);
+  }
 }

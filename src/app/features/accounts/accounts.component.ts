@@ -79,6 +79,7 @@ import { AccountItem } from '../../core/models/account.model';
                     </div>
                   </div>
                   <div class="mt-4 flex justify-end gap-3 text-xs">
+                    <button class="text-slate-500" (click)="openReset(item)">Reset</button>
                     <button class="text-slate-700" (click)="openEdit(item)">Edit</button>
                     <button class="text-slate-400" (click)="remove(item)">Delete</button>
                   </div>
@@ -131,6 +132,7 @@ import { AccountItem } from '../../core/models/account.model';
                   </div>
                 </div>
                 <div class="mt-4 flex justify-end gap-3 text-xs">
+                  <button class="text-slate-500" (click)="openReset(item)">Reset</button>
                   <button class="text-slate-700" (click)="openEdit(item)">Edit</button>
                   <button class="text-slate-400" (click)="remove(item)">Delete</button>
                 </div>
@@ -182,6 +184,7 @@ import { AccountItem } from '../../core/models/account.model';
                   </div>
                 </div>
                 <div class="mt-4 flex justify-end gap-3 text-xs">
+                  <button class="text-slate-500" (click)="openReset(item)">Reset</button>
                   <button class="text-slate-700" (click)="openEdit(item)">Edit</button>
                   <button class="text-slate-400" (click)="remove(item)">Delete</button>
                 </div>
@@ -282,6 +285,62 @@ import { AccountItem } from '../../core/models/account.model';
         </form>
       </div>
     </div>
+
+    <div
+      *ngIf="isResetModalOpen"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4"
+    >
+      <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+        <div class="flex items-center justify-between">
+          <div class="text-lg font-semibold">Reset balance</div>
+          <button class="text-slate-400" (click)="closeReset()">X</button>
+        </div>
+
+        <form class="mt-4 space-y-4" [formGroup]="resetForm" (ngSubmit)="resetBalance()">
+          <div class="text-sm text-slate-500">
+            Set the current balance for
+            <span class="font-semibold text-slate-800">{{ resettingAccount?.name }}</span>.
+          </div>
+
+          <div>
+            <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">
+              Current balance
+            </label>
+            <input
+              formControlName="currentBalance"
+              type="number"
+              class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            />
+          </div>
+
+          <div>
+            <label class="text-xs font-semibold uppercase tracking-wide text-slate-600">
+              Note (optional)
+            </label>
+            <input
+              formControlName="note"
+              class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              placeholder="Adjustment reason"
+            />
+          </div>
+
+          <div *ngIf="resetError" class="text-sm text-red-600">{{ resetError }}</div>
+
+          <div class="flex justify-end gap-3">
+            <button type="button" class="text-sm text-slate-500" (click)="closeReset()">
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="rounded bg-slate-900 px-4 py-2 text-xs uppercase tracking-wide text-white"
+              [disabled]="resetForm.invalid || isResetting"
+            >
+              {{ isResetting ? 'Saving...' : 'Reset balance' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   `,
 })
 export class AccountsComponent implements OnInit {
@@ -292,10 +351,15 @@ export class AccountsComponent implements OnInit {
   otherAccounts: AccountItem[] = [];
   isLoading = false;
   isSaving = false;
+  isResetting = false;
   isModalOpen = false;
+  isResetModalOpen = false;
   error = '';
+  resetError = '';
   editing: AccountItem | null = null;
+  resettingAccount: AccountItem | null = null;
   form: FormGroup;
+  resetForm: FormGroup;
 
   constructor(
     private readonly fb: FormBuilder,
@@ -309,6 +373,10 @@ export class AccountsComponent implements OnInit {
       bankName: [''],
       initialBalance: [0, [Validators.min(0)]],
       isActive: [true],
+    });
+    this.resetForm = this.fb.group({
+      currentBalance: [0, [Validators.required, Validators.min(0)]],
+      note: [''],
     });
   }
 
@@ -360,6 +428,22 @@ export class AccountsComponent implements OnInit {
 
   closeModal() {
     this.isModalOpen = false;
+  }
+
+  openReset(item: AccountItem) {
+    this.resettingAccount = item;
+    this.resetError = '';
+    this.resetForm.reset({
+      currentBalance: item.currentBalance ?? item.initialBalance,
+      note: '',
+    });
+    this.isResetModalOpen = true;
+  }
+
+  closeReset() {
+    this.isResetModalOpen = false;
+    this.resetError = '';
+    this.resettingAccount = null;
   }
 
   async save() {
@@ -433,6 +517,47 @@ export class AccountsComponent implements OnInit {
         this.error = 'Unable to delete account';
       },
     });
+  }
+
+  resetBalance() {
+    if (this.resetForm.invalid || !this.resettingAccount) {
+      return;
+    }
+    const account = this.resettingAccount;
+    if (!account) {
+      return;
+    }
+    this.confirm
+      .open({
+        title: 'Confirm reset',
+        message: `Set current balance for ${account.name}? This will create an adjustment.`,
+      })
+      .then((confirmed) => {
+        if (!confirmed) {
+          return;
+        }
+        this.isResetting = true;
+        this.resetError = '';
+        const payload = {
+          currentBalance: Number(this.resetForm.value.currentBalance ?? 0),
+          note: String(this.resetForm.value.note || ''),
+        };
+
+        this.accountsApi.resetBalance(account._id, payload).subscribe({
+          next: () => {
+            this.isResetting = false;
+            this.closeReset();
+            this.load();
+          },
+          error: (error) => {
+            const message = Array.isArray(error?.error?.message)
+              ? error.error.message.join(', ')
+              : error?.error?.message;
+            this.resetError = message || 'Unable to reset balance';
+            this.isResetting = false;
+          },
+        });
+      });
   }
 
   formatType(type: AccountItem['type']) {
