@@ -1,14 +1,20 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CategoriesApiService } from '../../core/services/categories-api.service';
 import { ConfirmService } from '../../core/services/confirm.service';
 import { CategoryItem } from '../../core/models/category.model';
+import { TransactionsApiService } from '../../core/services/transactions-api.service';
+import { TransactionItem } from '../../core/models/transaction.model';
+
+type CurrencyTotals = { USD: number; NIO: number };
+type TypeTotals = { income: CurrencyTotals; expense: CurrencyTotals };
+type CategoryTotals = { own: TypeTotals; children: TypeTotals; total: TypeTotals };
 
 @Component({
   selector: 'app-categories',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   template: `
     <div class="space-y-6">
       <div class="flex items-center justify-between">
@@ -25,6 +31,19 @@ import { CategoryItem } from '../../core/models/category.model';
       </div>
 
       <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="text-xs text-slate-500">
+            Totals based on transactions within the selected range.
+          </div>
+          <select
+            [(ngModel)]="rangeOption"
+            (change)="loadTotals()"
+            class="rounded-lg border border-slate-200 px-3 py-2 text-xs uppercase tracking-wide text-slate-700"
+          >
+            <option value="last30">Last 30 days</option>
+            <option value="month">Current month</option>
+          </select>
+        </div>
         <div *ngIf="isLoading" class="text-sm text-slate-500">Loading categories...</div>
         <div *ngIf="error" class="text-sm text-red-600">{{ error }}</div>
 
@@ -34,6 +53,7 @@ import { CategoryItem } from '../../core/models/category.model';
               <th class="py-2">Name</th>
               <th class="py-2">Type</th>
               <th class="py-2">Parent</th>
+              <th class="py-2 text-right">{{ rangeLabel }}</th>
               <th class="py-2 text-right">Actions</th>
             </tr>
           </thead>
@@ -48,12 +68,43 @@ import { CategoryItem } from '../../core/models/category.model';
               <td class="py-3">{{ row.item.type === 'income' ? 'Income' : 'Expense' }}</td>
               <td class="py-3">{{ resolveParentName(row.item.parentId) }}</td>
               <td class="py-3 text-right">
+                <div *ngIf="totalsLoading" class="text-xs text-slate-400">Loading...</div>
+                <ng-container *ngIf="!totalsLoading">
+                  <ng-container *ngIf="getTotals(row.item) as totals">
+                    <div class="text-[11px] uppercase tracking-wide text-slate-400">Income</div>
+                    <div class="text-sm font-medium text-emerald-700">
+                      USD {{ formatAmount(totals.total.income.USD) }} · NIO
+                      {{ formatAmount(totals.total.income.NIO) }}
+                    </div>
+                    <div class="mt-2 text-[11px] uppercase tracking-wide text-slate-400">Expense</div>
+                    <div class="text-sm font-medium text-rose-700">
+                      USD {{ formatAmount(totals.total.expense.USD) }} · NIO
+                      {{ formatAmount(totals.total.expense.NIO) }}
+                    </div>
+                    <div *ngIf="hasChildren(row.item)" class="mt-2 text-[11px] text-slate-500">
+                      Own I USD {{ formatAmount(totals.own.income.USD) }} · NIO
+                      {{ formatAmount(totals.own.income.NIO) }}
+                      <span class="mx-1 text-slate-300">|</span>
+                      Own E USD {{ formatAmount(totals.own.expense.USD) }} · NIO
+                      {{ formatAmount(totals.own.expense.NIO) }}
+                      <div class="mt-1">
+                        Children I USD {{ formatAmount(totals.children.income.USD) }} · NIO
+                        {{ formatAmount(totals.children.income.NIO) }}
+                        <span class="mx-1 text-slate-300">|</span>
+                        Children E USD {{ formatAmount(totals.children.expense.USD) }} · NIO
+                        {{ formatAmount(totals.children.expense.NIO) }}
+                      </div>
+                    </div>
+                  </ng-container>
+                </ng-container>
+              </td>
+              <td class="py-3 text-right">
                 <button class="text-xs text-slate-700" (click)="openEdit(row.item)">Edit</button>
                 <button class="ml-3 text-xs text-slate-400" (click)="remove(row.item)">Delete</button>
               </td>
             </tr>
             <tr *ngIf="displayCategories.length === 0 && !isLoading">
-              <td colspan="4" class="py-6 text-center text-sm text-slate-500">
+              <td colspan="5" class="py-6 text-center text-sm text-slate-500">
                 No categories found
               </td>
             </tr>
@@ -129,17 +180,22 @@ import { CategoryItem } from '../../core/models/category.model';
 export class CategoriesComponent implements OnInit {
   categories: CategoryItem[] = [];
   displayCategories: Array<{ item: CategoryItem; depth: number }> = [];
+  private childrenByParent = new Map<string, CategoryItem[]>();
+  totalsByCategory = new Map<string, CategoryTotals>();
+  totalsLoading = false;
   isLoading = false;
   isSaving = false;
   isModalOpen = false;
   error = '';
   editing: CategoryItem | null = null;
+  rangeOption: 'last30' | 'month' = 'last30';
   form: FormGroup;
 
   constructor(
     private readonly fb: FormBuilder,
     private readonly categoriesApi: CategoriesApiService,
     private readonly confirm: ConfirmService,
+    private readonly transactionsApi: TransactionsApiService,
   ) {
     this.form = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
@@ -160,6 +216,7 @@ export class CategoriesComponent implements OnInit {
         this.categories = items;
         this.displayCategories = this.buildHierarchy(items);
         this.isLoading = false;
+        this.loadTotals();
       },
       error: () => {
         this.error = 'Unable to load categories';
@@ -264,6 +321,131 @@ export class CategoriesComponent implements OnInit {
     return this.categories.find((item) => item._id === parentId)?.name ?? '-';
   }
 
+  getTotals(item: CategoryItem) {
+    return (
+      this.totalsByCategory.get(item._id) ?? {
+        own: { income: { USD: 0, NIO: 0 }, expense: { USD: 0, NIO: 0 } },
+        children: { income: { USD: 0, NIO: 0 }, expense: { USD: 0, NIO: 0 } },
+        total: { income: { USD: 0, NIO: 0 }, expense: { USD: 0, NIO: 0 } },
+      }
+    );
+  }
+
+  hasChildren(item: CategoryItem) {
+    return (this.childrenByParent.get(item._id) ?? []).length > 0;
+  }
+
+  formatAmount(value: number) {
+    return Number(value || 0).toFixed(2);
+  }
+
+  get rangeLabel() {
+    return this.rangeOption === 'month' ? 'Current month' : 'Last 30 days';
+  }
+
+  loadTotals() {
+    const { from, to } =
+      this.rangeOption === 'month' ? this.currentMonthRange() : this.last30DaysRange();
+    this.totalsLoading = true;
+    this.transactionsApi.list({ from, to }).subscribe({
+      next: (items) => {
+        const byCategory = this.aggregateTransactions(items);
+        this.totalsByCategory = this.buildCategoryTotals(byCategory);
+        this.totalsLoading = false;
+      },
+      error: () => {
+        this.totalsByCategory = new Map();
+        this.totalsLoading = false;
+      },
+    });
+  }
+
+  private aggregateTransactions(items: TransactionItem[]) {
+    const totals = new Map<string, TypeTotals>();
+    items.forEach((item) => {
+      if (item.voidedAt) {
+        return;
+      }
+      if (!item.categoryId) {
+        return;
+      }
+      if (item.type !== 'income' && item.type !== 'expense') {
+        return;
+      }
+      const categoryId =
+        typeof item.categoryId === 'string' ? item.categoryId : item.categoryId._id;
+      const current = totals.get(categoryId) ?? {
+        income: { USD: 0, NIO: 0 },
+        expense: { USD: 0, NIO: 0 },
+      };
+      const target = item.type === 'income' ? current.income : current.expense;
+      if (item.currency === 'USD') {
+        target.USD += Number(item.amount || 0);
+      } else {
+        target.NIO += Number(item.amount || 0);
+      }
+      totals.set(categoryId, current);
+    });
+    return totals;
+  }
+
+  private buildCategoryTotals(ownTotals: Map<string, TypeTotals>) {
+    const result = new Map<string, CategoryTotals>();
+    const roots = this.categories.filter((item) => !item.parentId);
+
+    const addCurrency = (left: CurrencyTotals, right: CurrencyTotals): CurrencyTotals => ({
+      USD: left.USD + right.USD,
+      NIO: left.NIO + right.NIO,
+    });
+
+    const addType = (left: TypeTotals, right: TypeTotals): TypeTotals => ({
+      income: addCurrency(left.income, right.income),
+      expense: addCurrency(left.expense, right.expense),
+    });
+
+    const zeroCurrency = (): CurrencyTotals => ({ USD: 0, NIO: 0 });
+    const zeroType = (): TypeTotals => ({ income: zeroCurrency(), expense: zeroCurrency() });
+
+    const walk = (item: CategoryItem): TypeTotals => {
+      const own = ownTotals.get(item._id) ?? zeroType();
+      const childrenTotals = (this.childrenByParent.get(item._id) ?? []).reduce(
+        (acc, child) => addType(acc, walk(child)),
+        zeroType(),
+      );
+      const total = addType(own, childrenTotals);
+      result.set(item._id, { own, children: childrenTotals, total });
+      return total;
+    };
+
+    roots.forEach((root) => walk(root));
+    this.categories.forEach((item) => {
+      if (!result.has(item._id)) {
+        walk(item);
+      }
+    });
+
+    return result;
+  }
+
+  private last30DaysRange() {
+    const toDate = new Date();
+    const fromDate = new Date();
+    fromDate.setDate(fromDate.getDate() - 30);
+    return {
+      from: fromDate.toISOString().slice(0, 10),
+      to: toDate.toISOString().slice(0, 10),
+    };
+  }
+
+  private currentMonthRange() {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    return {
+      from: start.toISOString().slice(0, 10),
+      to: now.toISOString().slice(0, 10),
+    };
+  }
+
   private buildHierarchy(items: CategoryItem[]) {
     const byParent = new Map<string, CategoryItem[]>();
     const roots: CategoryItem[] = [];
@@ -278,6 +460,7 @@ export class CategoriesComponent implements OnInit {
       }
       byParent.get(parent)?.push(item);
     });
+    this.childrenByParent = byParent;
 
     const sortByName = (list: CategoryItem[]) =>
       list.sort((a, b) => a.name.localeCompare(b.name));

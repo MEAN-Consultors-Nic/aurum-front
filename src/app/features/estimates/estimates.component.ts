@@ -111,10 +111,9 @@ import { ServiceItem } from '../../core/models/service.model';
                   Edit
                 </button>
                 <button
-                  *ngIf="item.status !== 'converted'"
+                  *ngIf="item.status !== 'converted' && item.status !== 'rejected' && item.status !== 'expired'"
                   class="ml-3 text-xs text-emerald-600"
                   (click)="openConvert(item)"
-                  [disabled]="item.status === 'rejected' || item.status === 'expired'"
                 >
                   Convert
                 </button>
