@@ -98,15 +98,23 @@ import { ServiceItem } from '../../core/models/service.model';
               <td class="py-3 text-right">
                 <button
                   class="text-xs text-slate-700"
+                  (click)="openNotes(item)"
+                  [disabled]="!hasNotes(item)"
+                >
+                  Notes
+                </button>
+                <button
+                  class="ml-3 text-xs text-slate-700"
                   (click)="openEdit(item)"
                   [disabled]="item.status === 'converted'"
                 >
                   Edit
                 </button>
                 <button
+                  *ngIf="item.status !== 'converted'"
                   class="ml-3 text-xs text-emerald-600"
                   (click)="openConvert(item)"
-                  [disabled]="item.status === 'converted' || item.status === 'rejected' || item.status === 'expired'"
+                  [disabled]="item.status === 'rejected' || item.status === 'expired'"
                 >
                   Convert
                 </button>
@@ -323,6 +331,36 @@ import { ServiceItem } from '../../core/models/service.model';
         </form>
       </div>
     </div>
+
+    <div
+      *ngIf="isNotesOpen"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4"
+    >
+      <div class="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl">
+        <div class="flex items-center justify-between">
+          <div class="text-lg font-semibold">Notes</div>
+          <div class="flex items-center gap-2">
+            <button
+              class="rounded border border-slate-200 px-3 py-1 text-xs uppercase tracking-wide text-slate-700"
+              (click)="copyNotes()"
+              [disabled]="!notesPreview"
+            >
+              {{ copyLabel }}
+            </button>
+            <button class="text-slate-400" (click)="closeNotes()">X</button>
+          </div>
+        </div>
+
+        <div class="mt-2 text-xs text-slate-500">
+          <div>{{ notesClient || 'Client' }}</div>
+          <div>{{ notesTitle || 'Untitled estimate' }}</div>
+        </div>
+
+        <div class="mt-4 max-h-[60vh] overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+          <div class="whitespace-pre-wrap">{{ notesPreview || 'No notes available.' }}</div>
+        </div>
+      </div>
+    </div>
   `,
 })
 export class EstimatesComponent implements OnInit {
@@ -339,8 +377,14 @@ export class EstimatesComponent implements OnInit {
   convertError = '';
   isModalOpen = false;
   isConvertOpen = false;
+  isNotesOpen = false;
   editing: EstimateItem | null = null;
   converting: EstimateItem | null = null;
+  notesPreview = '';
+  notesTitle = '';
+  notesClient = '';
+  copyLabel = 'Copy';
+  private copyTimer: ReturnType<typeof setTimeout> | null = null;
 
   search = '';
   statusFilter = '';
@@ -526,6 +570,55 @@ export class EstimatesComponent implements OnInit {
   closeConvert() {
     this.isConvertOpen = false;
     this.converting = null;
+  }
+
+  openNotes(item: EstimateItem) {
+    this.notesPreview = (item.notes ?? '').trim();
+    this.notesTitle = item.title ?? '';
+    this.notesClient = this.getClientName(item);
+    this.resetCopyLabel();
+    this.isNotesOpen = true;
+  }
+
+  closeNotes() {
+    this.isNotesOpen = false;
+    this.notesPreview = '';
+    this.notesTitle = '';
+    this.notesClient = '';
+    this.resetCopyLabel();
+  }
+
+  copyNotes() {
+    if (!this.notesPreview) {
+      return;
+    }
+    navigator.clipboard
+      ?.writeText(this.notesPreview)
+      .then(() => this.setCopyLabel('Copied'))
+      .catch(() => this.setCopyLabel('Failed'));
+  }
+
+  hasNotes(item: EstimateItem) {
+    return Boolean((item.notes ?? '').trim());
+  }
+
+  private setCopyLabel(label: string) {
+    this.copyLabel = label;
+    if (this.copyTimer) {
+      clearTimeout(this.copyTimer);
+    }
+    this.copyTimer = setTimeout(() => {
+      this.copyLabel = 'Copy';
+      this.copyTimer = null;
+    }, 2000);
+  }
+
+  private resetCopyLabel() {
+    if (this.copyTimer) {
+      clearTimeout(this.copyTimer);
+      this.copyTimer = null;
+    }
+    this.copyLabel = 'Copy';
   }
 
   convert() {
