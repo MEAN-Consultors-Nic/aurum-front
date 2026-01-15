@@ -15,6 +15,14 @@ import { AccountItem } from '../../core/models/account.model';
         <div>
           <div class="text-2xl font-semibold">Accounts</div>
           <div class="text-sm text-slate-500">Manage your bank accounts and wallets</div>
+          <div class="mt-3 flex flex-wrap items-center gap-3 text-sm">
+            <div class="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-emerald-700">
+              Total USD {{ formatAmount(totalByCurrency.USD) }}
+            </div>
+            <div class="rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-indigo-700">
+              Total NIO {{ formatAmount(totalByCurrency.NIO) }}
+            </div>
+          </div>
         </div>
         <button
           class="rounded bg-slate-900 px-3 py-2 text-xs uppercase tracking-wide text-white"
@@ -349,6 +357,7 @@ export class AccountsComponent implements OnInit {
   bankAccounts: AccountItem[] = [];
   cashAccounts: AccountItem[] = [];
   otherAccounts: AccountItem[] = [];
+  totalByCurrency: { USD: number; NIO: number } = { USD: 0, NIO: 0 };
   isLoading = false;
   isSaving = false;
   isResetting = false;
@@ -577,10 +586,26 @@ export class AccountsComponent implements OnInit {
     return `${currency} ${Number(amount ?? 0).toFixed(2)}`;
   }
 
+  formatAmount(amount: number) {
+    return Number(amount ?? 0).toFixed(2);
+  }
+
   private updateGroups() {
     this.bankAccounts = this.accounts.filter((item) => item.type === 'bank');
     this.cashAccounts = this.accounts.filter((item) => item.type === 'cash');
     this.otherAccounts = this.accounts.filter((item) => item.type !== 'bank' && item.type !== 'cash');
+    this.totalByCurrency = this.accounts.reduce(
+      (totals, account) => {
+        const balance = account.currentBalance ?? account.initialBalance ?? 0;
+        if (account.currency === 'USD') {
+          totals.USD += Number(balance);
+        } else {
+          totals.NIO += Number(balance);
+        }
+        return totals;
+      },
+      { USD: 0, NIO: 0 },
+    );
 
     const map = new Map<string, AccountItem[]>();
     for (const item of this.bankAccounts) {

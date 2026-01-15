@@ -31,6 +31,46 @@ type CategoryTotals = { own: TypeTotals; children: TypeTotals; total: TypeTotals
       </div>
 
       <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="grid gap-3 pb-4 lg:grid-cols-5">
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (keyup.enter)="applyFilters()"
+            class="rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            placeholder="Search categories"
+          />
+          <select
+            [(ngModel)]="typeFilter"
+            (change)="applyFilters()"
+            class="rounded-lg border border-slate-200 px-3 py-2 text-sm"
+          >
+            <option value="">All types</option>
+            <option value="income">Income</option>
+            <option value="expense">Expense</option>
+          </select>
+          <select
+            [(ngModel)]="parentFilter"
+            (change)="applyFilters()"
+            class="rounded-lg border border-slate-200 px-3 py-2 text-sm"
+          >
+            <option value="">All parents</option>
+            <option *ngFor="let category of categories" [value]="category._id">
+              {{ category.name }}
+            </option>
+          </select>
+          <button
+            class="rounded border border-slate-200 px-3 py-2 text-xs uppercase tracking-wide text-slate-700"
+            (click)="applyFilters()"
+          >
+            Filter
+          </button>
+          <button
+            class="rounded bg-slate-900 px-3 py-2 text-xs uppercase tracking-wide text-white"
+            (click)="clearFilters()"
+          >
+            Clear
+          </button>
+        </div>
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div class="text-xs text-slate-500">
             Totals based on transactions within the selected range.
@@ -181,6 +221,7 @@ export class CategoriesComponent implements OnInit {
   categories: CategoryItem[] = [];
   displayCategories: Array<{ item: CategoryItem; depth: number }> = [];
   private childrenByParent = new Map<string, CategoryItem[]>();
+  private categoryById = new Map<string, CategoryItem>();
   totalsByCategory = new Map<string, CategoryTotals>();
   totalsLoading = false;
   isLoading = false;
@@ -189,6 +230,9 @@ export class CategoriesComponent implements OnInit {
   error = '';
   editing: CategoryItem | null = null;
   rangeOption: 'last30' | 'month' = 'last30';
+  searchTerm = '';
+  typeFilter: '' | 'income' | 'expense' = '';
+  parentFilter = '';
   form: FormGroup;
 
   constructor(
@@ -214,7 +258,9 @@ export class CategoriesComponent implements OnInit {
     this.categoriesApi.list().subscribe({
       next: (items) => {
         this.categories = items;
-        this.displayCategories = this.buildHierarchy(items);
+        this.categoryById = new Map(items.map((item) => [item._id, item]));
+        this.buildChildrenIndex(items);
+        this.applyFilters();
         this.isLoading = false;
         this.loadTotals();
       },
@@ -319,6 +365,49 @@ export class CategoriesComponent implements OnInit {
       return '-';
     }
     return this.categories.find((item) => item._id === parentId)?.name ?? '-';
+  }
+
+  applyFilters() {
+    const search = this.searchTerm.trim().toLowerCase();
+    const type = this.typeFilter;
+    const allowedIds = this.parentFilter ? this.collectSubtreeIds(this.parentFilter) : null;
+
+    let filtered = this.categories.filter((item) => {
+      if (allowedIds && !allowedIds.has(item._id)) {
+        return false;
+      }
+      if (type && item.type !== type) {
+        return false;
+      }
+      if (search && !item.name.toLowerCase().includes(search)) {
+        return false;
+      }
+      return true;
+    });
+
+    if (search) {
+      const expanded = new Map<string, CategoryItem>();
+      filtered.forEach((item) => expanded.set(item._id, item));
+      filtered.forEach((item) => {
+        let current = item.parentId ? this.categoryById.get(item.parentId) : undefined;
+        while (current) {
+          if (!allowedIds || allowedIds.has(current._id)) {
+            expanded.set(current._id, current);
+          }
+          current = current.parentId ? this.categoryById.get(current.parentId) : undefined;
+        }
+      });
+      filtered = Array.from(expanded.values());
+    }
+
+    this.displayCategories = this.buildHierarchy(filtered);
+  }
+
+  clearFilters() {
+    this.searchTerm = '';
+    this.typeFilter = '';
+    this.parentFilter = '';
+    this.applyFilters();
   }
 
   getTotals(item: CategoryItem) {
@@ -446,13 +535,26 @@ export class CategoriesComponent implements OnInit {
     };
   }
 
-  private buildHierarchy(items: CategoryItem[]) {
+  private collectSubtreeIds(parentId: string) {
+    const result = new Set<string>();
+    const stack = [parentId];
+    while (stack.length) {
+      const current = stack.pop();
+      if (!current || result.has(current)) {
+        continue;
+      }
+      result.add(current);
+      const children = this.childrenByParent.get(current) ?? [];
+      children.forEach((child) => stack.push(child._id));
+    }
+    return result;
+  }
+
+  private buildChildrenIndex(items: CategoryItem[]) {
     const byParent = new Map<string, CategoryItem[]>();
-    const roots: CategoryItem[] = [];
     items.forEach((item) => {
       const parent = item.parentId ?? '';
       if (!parent) {
-        roots.push(item);
         return;
       }
       if (!byParent.has(parent)) {
@@ -461,6 +563,24 @@ export class CategoriesComponent implements OnInit {
       byParent.get(parent)?.push(item);
     });
     this.childrenByParent = byParent;
+  }
+
+  private buildHierarchy(items: CategoryItem[]) {
+    const byParent = new Map<string, CategoryItem[]>();
+    const roots: CategoryItem[] = [];
+    const allowedIds = new Set(items.map((item) => item._id));
+
+    items.forEach((item) => {
+      const parent = item.parentId ?? '';
+      if (!parent || !allowedIds.has(parent)) {
+        roots.push(item);
+        return;
+      }
+      if (!byParent.has(parent)) {
+        byParent.set(parent, []);
+      }
+      byParent.get(parent)?.push(item);
+    });
 
     const sortByName = (list: CategoryItem[]) =>
       list.sort((a, b) => a.name.localeCompare(b.name));
