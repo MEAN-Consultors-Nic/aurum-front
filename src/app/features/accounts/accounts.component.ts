@@ -28,48 +28,167 @@ import { AccountItem } from '../../core/models/account.model';
         <div *ngIf="isLoading" class="text-sm text-slate-500">Loading accounts...</div>
         <div *ngIf="error" class="text-sm text-red-600">{{ error }}</div>
 
-        <table *ngIf="!isLoading" class="mt-2 w-full text-sm">
-          <thead class="text-left text-xs uppercase tracking-wide text-slate-400">
-            <tr>
-              <th class="py-2">Account</th>
-              <th class="py-2">Type</th>
-              <th class="py-2">Currency</th>
-              <th class="py-2">Initial balance</th>
-              <th class="py-2">Current balance</th>
-              <th class="py-2">Status</th>
-              <th class="py-2 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let item of accounts" class="border-t border-slate-100">
-              <td class="py-3">
-                <div class="font-medium text-slate-900">{{ item.name }}</div>
-                <div class="text-xs text-slate-500">{{ item.bankName || 'No bank' }}</div>
-              </td>
-              <td class="py-3">{{ formatType(item.type) }}</td>
-              <td class="py-3">{{ item.currency }}</td>
-              <td class="py-3">{{ formatMoney(item.initialBalance, item.currency) }}</td>
-              <td class="py-3">{{ formatMoney(item.currentBalance ?? item.initialBalance, item.currency) }}</td>
-              <td class="py-3">
-                <span
-                  class="rounded-full px-2 py-1 text-xs"
-                  [ngClass]="item.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'"
+        <div *ngIf="!isLoading && accounts.length === 0" class="py-6 text-center text-sm text-slate-500">
+          No accounts found
+        </div>
+
+        <div *ngIf="!isLoading && accounts.length > 0" class="space-y-8">
+          <div>
+            <div class="flex items-center justify-between">
+              <div class="text-sm font-semibold text-slate-800">Bank accounts</div>
+              <div class="text-xs text-slate-400">{{ bankAccounts.length }} total</div>
+            </div>
+            <div *ngIf="bankAccounts.length === 0" class="mt-3 text-sm text-slate-500">
+              No bank accounts yet.
+            </div>
+            <div *ngFor="let group of bankGroups" class="mt-4">
+              <div class="text-xs uppercase tracking-wide text-slate-400">{{ group.bankName }}</div>
+              <div class="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                <div
+                  *ngFor="let item of group.items"
+                  class="rounded-xl border border-slate-200 bg-slate-50/60 p-4 shadow-sm"
                 >
-                  {{ item.isActive ? 'Active' : 'Inactive' }}
-                </span>
-              </td>
-              <td class="py-3 text-right">
-                <button class="text-xs text-slate-700" (click)="openEdit(item)">Edit</button>
-                <button class="ml-3 text-xs text-slate-400" (click)="remove(item)">Delete</button>
-              </td>
-            </tr>
-            <tr *ngIf="accounts.length === 0 && !isLoading">
-              <td colspan="7" class="py-6 text-center text-sm text-slate-500">
-                No accounts found
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                  <div class="flex items-start justify-between gap-4">
+                    <div>
+                      <div class="text-sm font-semibold text-slate-900">{{ item.name }}</div>
+                      <div class="text-xs text-slate-500">{{ item.bankName || 'No bank' }}</div>
+                    </div>
+                    <span
+                      class="rounded-full px-2 py-1 text-xs"
+                      [ngClass]="item.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'"
+                    >
+                      {{ item.isActive ? 'Active' : 'Inactive' }}
+                    </span>
+                  </div>
+                  <div class="mt-4 grid gap-2 text-xs text-slate-600">
+                    <div class="flex items-center justify-between">
+                      <span>Currency</span>
+                      <span class="font-medium text-slate-800">{{ item.currency }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span>Initial balance</span>
+                      <span class="font-medium text-slate-800">
+                        {{ formatMoney(item.initialBalance, item.currency) }}
+                      </span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span>Current balance</span>
+                      <span class="font-semibold text-slate-900">
+                        {{ formatMoney(item.currentBalance ?? item.initialBalance, item.currency) }}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="mt-4 flex justify-end gap-3 text-xs">
+                    <button class="text-slate-700" (click)="openEdit(item)">Edit</button>
+                    <button class="text-slate-400" (click)="remove(item)">Delete</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between">
+              <div class="text-sm font-semibold text-slate-800">Cash</div>
+              <div class="text-xs text-slate-400">{{ cashAccounts.length }} total</div>
+            </div>
+            <div *ngIf="cashAccounts.length === 0" class="mt-3 text-sm text-slate-500">
+              No cash accounts yet.
+            </div>
+            <div class="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              <div
+                *ngFor="let item of cashAccounts"
+                class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+              >
+                <div class="flex items-start justify-between gap-4">
+                  <div>
+                    <div class="text-sm font-semibold text-slate-900">{{ item.name }}</div>
+                    <div class="text-xs text-slate-500">Cash</div>
+                  </div>
+                  <span
+                    class="rounded-full px-2 py-1 text-xs"
+                    [ngClass]="item.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'"
+                  >
+                    {{ item.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </div>
+                <div class="mt-4 grid gap-2 text-xs text-slate-600">
+                  <div class="flex items-center justify-between">
+                    <span>Currency</span>
+                    <span class="font-medium text-slate-800">{{ item.currency }}</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span>Initial balance</span>
+                    <span class="font-medium text-slate-800">
+                      {{ formatMoney(item.initialBalance, item.currency) }}
+                    </span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span>Current balance</span>
+                    <span class="font-semibold text-slate-900">
+                      {{ formatMoney(item.currentBalance ?? item.initialBalance, item.currency) }}
+                    </span>
+                  </div>
+                </div>
+                <div class="mt-4 flex justify-end gap-3 text-xs">
+                  <button class="text-slate-700" (click)="openEdit(item)">Edit</button>
+                  <button class="text-slate-400" (click)="remove(item)">Delete</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between">
+              <div class="text-sm font-semibold text-slate-800">Other</div>
+              <div class="text-xs text-slate-400">{{ otherAccounts.length }} total</div>
+            </div>
+            <div *ngIf="otherAccounts.length === 0" class="mt-3 text-sm text-slate-500">
+              No other accounts yet.
+            </div>
+            <div class="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              <div
+                *ngFor="let item of otherAccounts"
+                class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+              >
+                <div class="flex items-start justify-between gap-4">
+                  <div>
+                    <div class="text-sm font-semibold text-slate-900">{{ item.name }}</div>
+                    <div class="text-xs text-slate-500">{{ formatType(item.type) }}</div>
+                  </div>
+                  <span
+                    class="rounded-full px-2 py-1 text-xs"
+                    [ngClass]="item.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'"
+                  >
+                    {{ item.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </div>
+                <div class="mt-4 grid gap-2 text-xs text-slate-600">
+                  <div class="flex items-center justify-between">
+                    <span>Currency</span>
+                    <span class="font-medium text-slate-800">{{ item.currency }}</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span>Initial balance</span>
+                    <span class="font-medium text-slate-800">
+                      {{ formatMoney(item.initialBalance, item.currency) }}
+                    </span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span>Current balance</span>
+                    <span class="font-semibold text-slate-900">
+                      {{ formatMoney(item.currentBalance ?? item.initialBalance, item.currency) }}
+                    </span>
+                  </div>
+                </div>
+                <div class="mt-4 flex justify-end gap-3 text-xs">
+                  <button class="text-slate-700" (click)="openEdit(item)">Edit</button>
+                  <button class="text-slate-400" (click)="remove(item)">Delete</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -167,6 +286,10 @@ import { AccountItem } from '../../core/models/account.model';
 })
 export class AccountsComponent implements OnInit {
   accounts: AccountItem[] = [];
+  bankGroups: Array<{ bankName: string; items: AccountItem[] }> = [];
+  bankAccounts: AccountItem[] = [];
+  cashAccounts: AccountItem[] = [];
+  otherAccounts: AccountItem[] = [];
   isLoading = false;
   isSaving = false;
   isModalOpen = false;
@@ -199,6 +322,7 @@ export class AccountsComponent implements OnInit {
     this.accountsApi.list({ includeBalance: true }).subscribe({
       next: (items) => {
         this.accounts = items;
+        this.updateGroups();
         this.isLoading = false;
       },
       error: () => {
@@ -326,5 +450,31 @@ export class AccountsComponent implements OnInit {
 
   formatMoney(amount: number, currency: 'USD' | 'NIO') {
     return `${currency} ${Number(amount ?? 0).toFixed(2)}`;
+  }
+
+  private updateGroups() {
+    this.bankAccounts = this.accounts.filter((item) => item.type === 'bank');
+    this.cashAccounts = this.accounts.filter((item) => item.type === 'cash');
+    this.otherAccounts = this.accounts.filter((item) => item.type !== 'bank' && item.type !== 'cash');
+
+    const map = new Map<string, AccountItem[]>();
+    for (const item of this.bankAccounts) {
+      const bankName = item.bankName?.trim() || 'No bank';
+      if (!map.has(bankName)) {
+        map.set(bankName, []);
+      }
+      map.get(bankName)?.push(item);
+    }
+
+    const names = Array.from(map.keys()).sort((a, b) => {
+      if (a === 'No bank') return 1;
+      if (b === 'No bank') return -1;
+      return a.localeCompare(b);
+    });
+
+    this.bankGroups = names.map((bankName) => ({
+      bankName,
+      items: map.get(bankName) ?? [],
+    }));
   }
 }

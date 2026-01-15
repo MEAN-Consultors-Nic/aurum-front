@@ -472,7 +472,7 @@ export class PlannedIncomesComponent implements OnInit {
       isActive: [true],
     });
     this.confirmForm = this.fb.group({
-      receivedAmount: [0, [Validators.required, Validators.min(0)]],
+      receivedAmount: [0, [Validators.required, Validators.min(0.01)]],
       note: [''],
     });
   }
@@ -654,8 +654,11 @@ export class PlannedIncomesComponent implements OnInit {
         this.closeConfirm();
         this.loadMonth();
       },
-      error: () => {
-        this.confirmError = 'Unable to confirm income';
+      error: (error) => {
+        const message = Array.isArray(error?.error?.message)
+          ? error.error.message.join(', ')
+          : error?.error?.message;
+        this.confirmError = message || 'Unable to confirm income';
         this.isWorking = false;
       },
     });
